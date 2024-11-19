@@ -6,10 +6,14 @@
 #include <iostream>
 #include <print>
 
+#include "machine/machine.hpp"
+
 namespace fs = std::filesystem;
 
 constexpr uint8_t REGISTERS_COUNT = 0b111;
 constexpr uint16_t RAM_SIZE = 0xFFFF;
+
+constexpr unsigned int FREQ_4MHZ = 4'000'000;
 
 enum class Register : uint8_t {
   B,  // 000
@@ -40,16 +44,6 @@ enum class OpArithmetic : uint8_t {
   XOR = 0b101,
   OR = 0b110,
   CP = 0b111
-};
-
-enum class OpCodes : uint8_t {
-  NOP = 0b00000000,  // 0x00
-  LD = 0b00000110,   // 0x06
-  HALT = 0b01110110, // 0x76
-  ADD = 0b10000000,  // 0x80
-  SUB = 0b10010000,  // 0x90
-  AND = 0b10100000,  // 0xA0
-  SET = 0b11001000,  // 0xC0
 };
 
 uint16_t program_counter;
@@ -112,6 +106,18 @@ void handle_load_op(const uint8_t opcode) {
   }
 }
 
+bool handle_register_op(const uint8_t opcode) {
+  const Register dest_reg = static_cast<Register>((opcode & 0b00111000) >> 3);
+  const Register src_reg = static_cast<Register>((opcode & 0b00000111));
+
+  if (src_reg == dest_reg && src_reg == Register::HL) { // HALT operation
+    return true;
+  } else {
+    set_reg_value(dest_reg, get_reg_value<std::byte>(src_reg));
+  }
+  return false;
+}
+
 void handle_arithmetic_op(const uint8_t opcode) {
   const auto op = static_cast<OpArithmetic>((opcode & 0b00111000) >> 3);
 
@@ -128,6 +134,7 @@ void handle_arithmetic_op(const uint8_t opcode) {
 }
 
 int main(int argc, char **argv) {
+
   if (argc < 2) {
     std::println(std::cerr, "No program provided.");
     return EXIT_FAILURE;
@@ -149,11 +156,10 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  while (program_counter < RAM_SIZE) {
+  bool exit_loop = true;
+
+  while (program_counter < RAM_SIZE && !exit_loop) {
     const uint8_t opcode = static_cast<uint8_t>(memory[program_counter]);
-    if (opcode == static_cast<uint8_t>(OpCodes::HALT)) {
-      break;
-    }
 
     const OpTypes optype = static_cast<OpTypes>((opcode & 0b11000000) >> 6);
 
@@ -163,6 +169,7 @@ int main(int argc, char **argv) {
       break;
     }
     case OpTypes::REGISTER_OP:
+      exit_loop = handle_register_op(opcode);
       break;
     case OpTypes::ARITHMETIC:
       handle_arithmetic_op(opcode);
@@ -175,6 +182,29 @@ int main(int argc, char **argv) {
   }
 
   print_reg(Register::A);
+
+  Machine machine(FREQ_4MHZ);
+
+  // load program
+  std::ifstream file(program_path, std::ios::binary);
+
+  if (!file) {
+    return EXIT_FAILURE;
+  }
+
+  file.seekg(0, std::ios::end);
+  std::streamsize program_size = file.tellg();
+  file.seekg(0, std::ios::beg);
+
+  const unsigned char *program = new unsigned char[program_size];
+  file.read((char *)program, program_size);
+  file.close();
+
+  machine.load_program(program, program_size);
+
+  delete[] program;
+
+  machine.run();
 
   return EXIT_SUCCESS;
 }

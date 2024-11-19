@@ -1,6 +1,6 @@
-add_subdirectory(machine)
-
 target_sources(
   ${PROJECT_NAME} PRIVATE
-  main.cpp
+  memory.cpp
+  cpu.cpp
+  machine.cpp
 )
