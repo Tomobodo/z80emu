@@ -2,5 +2,6 @@ target_sources(
   ${PROJECT_NAME} PRIVATE
   memory.cpp
   cpu.cpp
-  machine.cpp
+  mother_board.cpp
+  mb_component.cpp
 )

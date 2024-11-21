@@ -6,7 +6,7 @@
 #include <iostream>
 #include <print>
 
-#include "machine/machine.hpp"
+#include "machine/mother_board.hpp"
 
 namespace fs = std::filesystem;
 
@@ -183,8 +183,6 @@ int main(int argc, char **argv) {
 
   print_reg(Register::A);
 
-  Machine machine(FREQ_4MHZ);
-
   // load program
   std::ifstream file(program_path, std::ios::binary);
 
@@ -196,11 +194,11 @@ int main(int argc, char **argv) {
   std::streamsize program_size = file.tellg();
   file.seekg(0, std::ios::beg);
 
-  const unsigned char *program = new unsigned char[program_size];
+  uint8_t *program = new uint8_t[program_size];
   file.read((char *)program, program_size);
   file.close();
 
-  machine.load_program(program, program_size);
+  MotherBoard machine(FREQ_4MHZ, program, program_size);
 
   delete[] program;
 
