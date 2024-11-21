@@ -7,6 +7,7 @@
 #include <print>
 
 #include "machine/cpu.hpp"
+#include "machine/debug_card.hpp"
 #include "machine/memory.hpp"
 #include "machine/mother_board.hpp"
 
@@ -202,6 +203,7 @@ int main(int argc, char **argv) {
 
   Memory memory;
   CPU z80;
+  DebugCard debugger;
 
   // flash memory
   memory.load_bytes(0x0000, program, program_size);
@@ -211,7 +213,8 @@ int main(int argc, char **argv) {
   MotherBoard mother_board(FREQ_4MHZ);
   mother_board.add_component(z80);
   mother_board.add_component(memory);
-  mother_board.run(true);
+  mother_board.add_component(debugger);
+  mother_board.run();
 
   return EXIT_SUCCESS;
 }
