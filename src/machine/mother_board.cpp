@@ -1,3 +1,4 @@
+#include <iostream>
 #include <print>
 
 #include "mother_board.hpp"
@@ -25,13 +26,24 @@ void MotherBoard::reset() {
   }
 }
 
-void MotherBoard::run() {
+void MotherBoard::run(bool step_by_step) {
   reset();
 
   m_memory.load_bytes(0x0000, m_ROM, m_ROM_size);
 
   while (m_is_on) {
-    update();
+    if (!step_by_step) {
+      update();
+    } else { // step by step
+      clock();
+
+      std::println("Data bus: {:#04X}", m_data_bus);
+      std::println("Address bus: {:#06X}", m_address_bus);
+      std::println("Control bus: {}",
+                   std::bitset<16>(m_control_bus).to_string());
+
+      std::cin.ignore();
+    }
   }
 }
 

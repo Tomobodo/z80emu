@@ -19,7 +19,7 @@ public:
 
   void reset();
 
-  void run();
+  void run(bool step_by_step);
 
 private:
   void update();

@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
 
   delete[] program;
 
-  machine.run();
+  machine.run(true);
 
   return EXIT_SUCCESS;
 }

@@ -5,8 +5,6 @@
 
 #include <cstdint>
 
-enum class T_STATE { T1, T2, T3, T4 };
-
 class CPU : MbComponent {
 public:
   CPU();
@@ -18,7 +16,8 @@ private:
   void reset() override;
 
 private:
-  T_STATE m_t_state;
+  uint8_t m_m_cycle;
+  uint8_t m_t_cycle;
 
   uint16_t m_program_counter = 0;
 };
