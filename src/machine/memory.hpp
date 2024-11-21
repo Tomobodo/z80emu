@@ -1,13 +1,12 @@
-#ifndef MEMORY_COMPONENT_HPP
-#define MEMORY_COMPONENT_HPP
+#pragma once
 
-#include "mb_component.hpp"
+#include "component.hpp"
 
 #include <cstdint>
 
 constexpr uint16_t MEMORY_SIZE = 0xFFFF;
 
-class Memory : public MbComponent {
+class Memory : public Component {
 public:
   Memory() {};
 
@@ -18,10 +17,8 @@ public:
 
   void reset() override;
 
-  void clock() override;
+  void clock(bool clock_high) override;
 
 private:
   uint8_t m_bytes[MEMORY_SIZE];
 };
-
-#endif

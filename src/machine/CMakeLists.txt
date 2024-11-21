@@ -3,5 +3,5 @@ target_sources(
   memory.cpp
   cpu.cpp
   mother_board.cpp
-  mb_component.cpp
+  component.cpp
 )

@@ -1,15 +1,14 @@
-#ifndef MACHINE_COMPONENT_HPP
-#define MACHINE_COMPONENT_HPP
+#pragma once
 
 #include "control_bus.hpp"
 #include <cstdint>
 
-class MbComponent {
+class Component {
 public:
-  MbComponent() {}
-  virtual ~MbComponent() {}
+  Component() {}
+  virtual ~Component() {}
 
-  virtual void clock() = 0;
+  virtual void clock(bool clock_high) = 0;
 
   virtual void reset() = 0;
 
@@ -46,5 +45,3 @@ protected:
 
 private:
 };
-
-#endif

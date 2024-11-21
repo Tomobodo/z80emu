@@ -1,5 +1,4 @@
-#ifndef CONTROL_BUS_HPP
-#define CONTROL_BUS_HPP
+#pragma once
 
 #include <cstdint>
 
@@ -20,5 +19,3 @@ enum class ControlBusPin : uint16_t {
   BUSRQ = 2048,
   BUSACK = 4096
 };
-
-#endif

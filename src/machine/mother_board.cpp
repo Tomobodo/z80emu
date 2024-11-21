@@ -3,20 +3,10 @@
 
 #include "mother_board.hpp"
 
-MotherBoard::MotherBoard(unsigned int frequency, const uint8_t *ROM,
-                         unsigned int ROM_size)
-    : m_frequency(frequency), m_ROM(ROM), m_ROM_size(ROM_size) {
+MotherBoard::MotherBoard(unsigned int frequency) : m_frequency(frequency) {
   m_clock_delay = 1.0 / (double)frequency;
   m_clock_time_acc = 0;
-
-  m_components.push_back(reinterpret_cast<MbComponent *>(&m_cpu));
-  m_components.push_back(reinterpret_cast<MbComponent *>(&m_memory));
 };
-
-void MotherBoard::load_program(const uint8_t *program,
-                               unsigned int program_size) {
-  m_memory.load_bytes(0x0000, program, program_size);
-}
 
 void MotherBoard::reset() {
   m_control_bus = 0;
@@ -29,13 +19,12 @@ void MotherBoard::reset() {
 void MotherBoard::run(bool step_by_step) {
   reset();
 
-  m_memory.load_bytes(0x0000, m_ROM, m_ROM_size);
-
   while (m_is_on) {
     if (!step_by_step) {
       update();
     } else { // step by step
-      clock();
+      clock(true);
+      clock(false);
 
       std::println("Data bus: {:#04X}", m_data_bus);
       std::println("Address bus: {:#06X}", m_address_bus);
@@ -56,20 +45,21 @@ void MotherBoard::update() {
   m_clock_time_acc += delta_time;
 
   while (m_clock_time_acc > m_clock_delay) {
-    clock();
+    clock(true);
+    clock(false);
 
     m_clock_time_acc -= m_clock_delay;
   }
 }
 
-void MotherBoard::clock() {
+void MotherBoard::clock(bool clock_high) {
 
   for (auto *component : m_components) {
     component->set_control_bus_in(m_control_bus);
     component->set_data_bus_in(m_data_bus);
     component->set_address_bus_in(m_address_bus);
 
-    component->clock();
+    component->clock(clock_high);
   }
 
   m_control_bus = 0;

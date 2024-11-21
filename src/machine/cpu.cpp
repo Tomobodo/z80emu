@@ -11,13 +11,13 @@ void CPU::reset() {
   m_program_counter = 0;
 }
 
-void CPU::clock() {
+void CPU::clock(bool clock_high) {
   if (read_control_bus_pin(ControlBusPin::RESET)) {
     reset();
     return;
   }
 
-  if (read_control_bus_pin(ControlBusPin::WAIT)) {
+  if (!clock_high && read_control_bus_pin(ControlBusPin::WAIT)) {
     return;
   }
 

@@ -1,21 +1,22 @@
-#ifndef MACHINE_HPP
-#define MACHINE_HPP
+#pragma once
 
 #include <chrono>
 #include <cstdint>
 #include <vector>
 
+#include "component.hpp"
 #include "control_bus.hpp"
-#include "cpu.hpp"
-#include "memory.hpp"
 
 class MotherBoard {
 public:
-  MotherBoard(unsigned int frequency, const uint8_t *ROM,
-              unsigned int ROM_size);
+  MotherBoard(unsigned int frequency);
   ~MotherBoard() {};
 
-  void load_program(const uint8_t *program, unsigned int program_size);
+  template <typename T>
+  typename std::enable_if<std::is_base_of<Component, T>::value>::type
+  add_component(T &component) {
+    m_components.push_back(&component);
+  }
 
   void reset();
 
@@ -24,7 +25,7 @@ public:
 private:
   void update();
 
-  void clock();
+  void clock(bool clock_high);
 
 private:
   bool m_is_on = true;
@@ -35,17 +36,12 @@ private:
 
   unsigned int m_frequency;
 
-  std::vector<MbComponent *> m_components;
+  std::vector<Component *> m_components;
 
   ControlBus m_control_bus;
   uint16_t m_address_bus;
   uint8_t m_data_bus;
 
-  CPU m_cpu;
-  Memory m_memory;
-
   const uint8_t *m_ROM;
   uint16_t m_ROM_size;
 };
-
-#endif

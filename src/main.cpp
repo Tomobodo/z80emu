@@ -6,6 +6,8 @@
 #include <iostream>
 #include <print>
 
+#include "machine/cpu.hpp"
+#include "machine/memory.hpp"
 #include "machine/mother_board.hpp"
 
 namespace fs = std::filesystem;
@@ -198,11 +200,18 @@ int main(int argc, char **argv) {
   file.read((char *)program, program_size);
   file.close();
 
-  MotherBoard machine(FREQ_4MHZ, program, program_size);
+  Memory memory;
+  CPU z80;
+
+  // flash memory
+  memory.load_bytes(0x0000, program, program_size);
 
   delete[] program;
 
-  machine.run(true);
+  MotherBoard mother_board(FREQ_4MHZ);
+  mother_board.add_component(z80);
+  mother_board.add_component(memory);
+  mother_board.run(true);
 
   return EXIT_SUCCESS;
 }

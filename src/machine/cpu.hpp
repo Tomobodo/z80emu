@@ -1,16 +1,15 @@
-#ifndef CPU_HPP
-#define CPU_HPP
+#pragma once
 
-#include "mb_component.hpp"
+#include "component.hpp"
 
 #include <cstdint>
 
-class CPU : MbComponent {
+class CPU : public Component {
 public:
   CPU();
   ~CPU() {};
 
-  void clock() override;
+  void clock(bool clock_high) override;
 
 private:
   void reset() override;
@@ -21,5 +20,3 @@ private:
 
   uint16_t m_program_counter = 0;
 };
-
-#endif
