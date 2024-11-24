@@ -6,8 +6,9 @@
 #include <iostream>
 #include <print>
 
+#include "debug/debug_card.hpp"
+
 #include "machine/cpu.hpp"
-#include "machine/debug_card.hpp"
 #include "machine/memory.hpp"
 #include "machine/mother_board.hpp"
 

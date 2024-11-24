@@ -1,7 +1,10 @@
 #include "debug_card.hpp"
+#include "SDL3/SDL_init.h"
 
 #include <iostream>
 #include <print>
+
+DebugCard::DebugCard() { m_window = nullptr; }
 
 void DebugCard::clock(bool clock_high) {
   std::println("Clock: {}", clock_high ? "HIGH" : "LOW");
@@ -13,4 +16,10 @@ void DebugCard::clock(bool clock_high) {
   std::cin.ignore();
 }
 
-void DebugCard::reset() {}
+void DebugCard::reset() {
+  if (m_window != nullptr) {
+    SDL_DestroyWindow(m_window);
+  }
+
+  m_window = nullptr;
+}
