@@ -1,6 +1,7 @@
 #include "debug_card.hpp"
 #include "imgui.h"
 #include "machine/control_bus.hpp"
+#include "utils/bit_operations.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -22,15 +23,6 @@ DebugCard::~DebugCard() { deinit(); }
 
 void DebugCard::clock(bool clock_high) {
   m_clock_high = clock_high;
-
-  /*
-    std::println("Clock: {}", clock_high ? "HIGH" : "LOW");
-    std::println("Data bus: {:#04X}", m_data_bus_in);
-    std::println("Address bus: {:#06X}", m_address_bus_in);
-    std::println("Control bus: {}",
-                 std::bitset<16>(m_control_bus_in).to_string());
-   */
-
   m_control_bus_out = m_control_bus_out_toggle;
 }
 
@@ -178,17 +170,13 @@ void DebugCard::update(double delta_time) {
       ImGui::Button(button_name);
 
       if (ImGui::IsItemActive()) {
-        m_control_bus_out_toggle |= (1 << bit);
+        set_bit(m_control_bus_out_toggle, bit, true);
       } else {
-        m_control_bus_out_toggle &= ~(1 << bit);
+        set_bit(m_control_bus_out_toggle, bit, false);
       }
     } else {
       if (ImGui::Button(button_name)) {
-        if (!bit_on) {
-          m_control_bus_out_toggle |= (1 << bit);
-        } else {
-          m_control_bus_out_toggle &= ~(1 << bit);
-        }
+        set_bit(m_control_bus_out_toggle, bit, !bit_on);
       }
     }
 
