@@ -11,6 +11,8 @@ public:
 
   void clock(bool clock_high) override;
 
+  inline uint16_t get_program_counter() { return m_program_counter; }
+
 private:
   void reset() override;
 

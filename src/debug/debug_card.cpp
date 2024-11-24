@@ -35,7 +35,7 @@ void DebugCard::init() {
   SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   m_window = SDL_CreateWindow("CPU Debug", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 640, 480, window_flags);
+                              SDL_WINDOWPOS_CENTERED, 1200, 720, window_flags);
 
   if (m_window == nullptr) {
     std::println(std::cerr, "Error: Could not init debugger window : {}.",
@@ -69,6 +69,8 @@ void DebugCard::init() {
   m_plot_data_offset = 0;
 
   m_control_bus_out_toggle = 0 | (uint16_t)ControlBusPin::WAIT;
+
+  m_mother_board_frequency = m_mother_board->get_frequency();
 }
 
 void DebugCard::deinit() {
@@ -84,6 +86,9 @@ void DebugCard::deinit() {
   SDL_Quit();
 
   m_initialized = false;
+
+  // quit app
+  m_mother_board->power_off();
 }
 
 void DebugCard::reset() {
@@ -130,75 +135,13 @@ void DebugCard::update(double delta_time) {
     }
   }
 
-  int win_width, win_height;
-  SDL_GetWindowSize(m_window, &win_width, &win_height);
+  SDL_GetWindowSize(m_window, &m_win_width, &m_win_height);
 
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::SetNextWindowSize(
-      ImVec2(static_cast<float>(win_width), static_cast<float>(win_height)));
-
-  ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDecoration);
-
-  ImGui::PlotLines("Clock", &get_clock_plot_value, m_clock_plot_data,
-                   PLOT_DATA_SIZE, m_plot_data_offset, 0, 0, 1);
-
-  // Control Bus
-  ImGui::Text("Control Bus");
-  for (int bit = 0; bit < 13; bit++) {
-
-    get_control_bus_plot_value_params params = {bit, m_control_bus_plot_data};
-    ImGui::PlotLines(std::format("##{}", CONTROL_BUS_PIN_NAMES[bit]).c_str(),
-                     &get_control_bus_plot_value, &params, PLOT_DATA_SIZE,
-                     m_plot_data_offset, 0, 0, 1);
-
-    bool bit_on = (m_control_bus_out_toggle >> bit) & 1;
-
-    if (bit_on) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 1.0f, 0.0f, 1.0f));
-    } else {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.2f, 0.0f, 1.0f));
-    }
-
-    ImGui::SameLine();
-    const char *button_name = CONTROL_BUS_PIN_NAMES[bit];
-
-    if (CONTROL_BUS_PINS[bit] == ControlBusPin::RESET) {
-      ImGui::Button(button_name);
-
-      if (ImGui::IsItemActive()) {
-        set_bit(m_control_bus_out_toggle, bit, true);
-      } else {
-        set_bit(m_control_bus_out_toggle, bit, false);
-      }
-    } else {
-      if (ImGui::Button(button_name)) {
-        set_bit(m_control_bus_out_toggle, bit, !bit_on);
-      }
-    }
-
-    ImGui::PopStyleColor();
-  }
-
-  // Data Bus
-  ImGui::Text("Data Bus");
-  for (int bit = 8; bit > 0; bit--) {
-    bool on = (m_data_bus_in & (1 << bit)) != 0;
-
-    ImVec4 led_color =
-        on ? ImVec4(0.2f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.2f, 0.0f, 1.0f);
-
-    if (ImGui::Button(std::format("##{}", bit).c_str(), ImVec2(30, 30))) {
-    }
-
-    ImGui::GetStyle().Colors[ImGuiCol_Button] = led_color;
-    ImGui::SameLine();
-  }
-
-  ImGui::End();
+  draw_ui();
 
   ImGui::Render();
   SDL_RenderSetScale(m_renderer, io.DisplayFramebufferScale.x,
@@ -209,4 +152,118 @@ void DebugCard::update(double delta_time) {
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
   SDL_RenderPresent(m_renderer);
+}
+
+void DebugCard::draw_ui() {
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowSize(ImVec2(static_cast<float>(m_win_width),
+                                  static_cast<float>(m_win_height)));
+
+  ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDecoration);
+
+  draw_clock_section();
+  draw_control_bus_section();
+  draw_data_bus_section();
+  draw_mother_board_section();
+
+  // Mother board
+  ImGui::End();
+}
+
+void DebugCard::draw_clock_section() {
+  if (ImGui::CollapsingHeader("Clock", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::PushItemWidth(130);
+    if (ImGui::InputInt("Frequency", &m_mother_board_frequency)) {
+      if (m_mother_board_frequency < 1) {
+        m_mother_board_frequency = 1;
+      }
+
+      if (m_mother_board_frequency > 4'000'000) {
+        m_mother_board_frequency = 4'000'000;
+      }
+
+      m_mother_board->set_frequency(m_mother_board_frequency);
+    }
+    ImGui::PopItemWidth();
+
+    ImGui::PlotLines("Signal", &get_clock_plot_value, m_clock_plot_data,
+                     PLOT_DATA_SIZE, m_plot_data_offset, 0, 0, 1);
+  }
+}
+
+void DebugCard::draw_control_bus_section() {
+  if (ImGui::CollapsingHeader("Control Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
+    for (int bit = 0; bit < 13; bit++) {
+
+      get_control_bus_plot_value_params params = {bit, m_control_bus_plot_data};
+      ImGui::PlotLines(std::format("##{}", CONTROL_BUS_PIN_NAMES[bit]).c_str(),
+                       &get_control_bus_plot_value, &params, PLOT_DATA_SIZE,
+                       m_plot_data_offset, 0, 0, 1);
+
+      bool bit_on = (m_control_bus_out_toggle >> bit) & 1;
+
+      if (bit_on) {
+        ImGui::PushStyleColor(ImGuiCol_Button, GREEN_LED_ON);
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Button, RED_LED_OFF);
+      }
+
+      ImGui::SameLine();
+      const char *button_name = CONTROL_BUS_PIN_NAMES[bit];
+
+      if (CONTROL_BUS_PINS[bit] == ControlBusPin::RESET) {
+        ImGui::Button(button_name);
+
+        if (ImGui::IsItemActive()) {
+          set_bit(m_control_bus_out_toggle, bit, true);
+        } else {
+          set_bit(m_control_bus_out_toggle, bit, false);
+        }
+      } else {
+        if (ImGui::Button(button_name)) {
+          set_bit(m_control_bus_out_toggle, bit, !bit_on);
+        }
+      }
+
+      ImGui::PopStyleColor();
+    }
+  }
+}
+
+void DebugCard::draw_data_bus_section() {
+  if (ImGui::CollapsingHeader("Data Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
+    for (int bit = 7; bit >= 0; bit--) {
+      bool on = get_bit(m_data_bus_in, bit);
+
+      ImVec4 led_color = on ? GREEN_LED_ON : GREEN_LED_OFF;
+      ImGui::PushStyleColor(ImGuiCol_Button, led_color);
+
+      if (bit < 7)
+        ImGui::SameLine();
+
+      ImGui::Button(std::format("##{}", bit).c_str(), ImVec2(16, 16));
+      ImGui::PopStyleColor();
+    }
+
+    ImGui::Text("Hex: 0x%02X", m_data_bus_in);
+    ImGui::SameLine();
+    ImGui::Text("Dec: %d", m_data_bus_in);
+  }
+}
+
+void DebugCard::draw_mother_board_section() {
+  if (ImGui::CollapsingHeader("Mother Board", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImVec4 lag_led_color =
+        m_mother_board->get_emulation_lagging() ? RED_LED_ON : RED_LED_OFF;
+    ImGui::PushStyleColor(ImGuiCol_Button, lag_led_color);
+    ImGui::Button("Emulation is lagging !");
+    ImGui::PopStyleColor();
+  }
+
+  ImGui::PushStyleColor(ImGuiCol_Button, RED_LED_ON);
+  if (ImGui::Button("Power")) {
+    deinit();
+    m_mother_board->power_off();
+  }
+  ImGui::PopStyleColor();
 }

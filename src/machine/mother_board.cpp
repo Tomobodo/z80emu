@@ -1,5 +1,7 @@
 #include "mother_board.hpp"
 
+#include "component.hpp"
+
 MotherBoard::MotherBoard(unsigned int frequency) { set_frequency(frequency); };
 
 void MotherBoard::reset() {
@@ -25,6 +27,8 @@ void MotherBoard::set_frequency(unsigned long long frequency) {
   m_clock_time_acc = 0;
 }
 
+void MotherBoard::power_off() { m_is_on = false; }
+
 void MotherBoard::update() {
   auto now = std::chrono::high_resolution_clock::now();
   auto elapsed =
@@ -33,11 +37,19 @@ void MotherBoard::update() {
 
   m_clock_time_acc += elapsed.count();
 
-  while (m_clock_time_acc >= m_clock_delay) {
-    clock(m_clock_phase = !m_clock_phase);
-
-    m_clock_time_acc -= m_clock_delay;
+  auto cycles_to_do = m_clock_time_acc / m_clock_delay;
+  if (cycles_to_do > MAX_CATCHUP_CYCLES_NUM) {
+    m_emulation_lagging = true;
+    cycles_to_do = MAX_CATCHUP_CYCLES_NUM;
+  } else {
+    m_emulation_lagging = false;
   }
+
+  for (auto i = 0; i < cycles_to_do; i++) {
+    clock(m_clock_phase = !m_clock_phase);
+  }
+
+  m_clock_time_acc -= cycles_to_do * m_clock_delay;
 
   double delta_time = static_cast<double>(elapsed.count()) / 1'000'000'000.0;
   for (auto *component : m_components) {
