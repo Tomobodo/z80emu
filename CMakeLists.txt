@@ -4,12 +4,14 @@ project(
   z80emu
   LANGUAGES CXX
   VERSION 0.1.0
-
 )
-
-set(CMAKE_CXX_STANDARD 23)
 
 add_executable(${PROJECT_NAME})
 
-add_subdirectory(src)
+set_target_properties(
+  ${PROJECT_NAME} PROPERTIES
+  CXX_STANDARD 23
+  CMAKE_CXX_STANDARD_REQUIRED ON
+)
 
+add_subdirectory(src)

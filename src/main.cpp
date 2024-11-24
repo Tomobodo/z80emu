@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 constexpr uint8_t REGISTERS_COUNT = 0b111;
 constexpr uint16_t RAM_SIZE = 0xFFFF;
 
-constexpr unsigned int FREQ_4MHZ = 4'000'000;
+constexpr unsigned int FREQ = 4;
 
 enum class Register : uint8_t {
   B,  // 000
@@ -138,7 +138,6 @@ void handle_arithmetic_op(const uint8_t opcode) {
 }
 
 int main(int argc, char **argv) {
-
   if (argc < 2) {
     std::println(std::cerr, "No program provided.");
     return EXIT_FAILURE;
@@ -211,7 +210,7 @@ int main(int argc, char **argv) {
 
   delete[] program;
 
-  MotherBoard mother_board(FREQ_4MHZ);
+  MotherBoard mother_board(FREQ);
   mother_board.add_component(z80);
   mother_board.add_component(memory);
   mother_board.add_component(debugger);

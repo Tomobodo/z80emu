@@ -8,6 +8,8 @@ public:
   Component() {}
   virtual ~Component() {}
 
+  virtual void update(double delta_time) {};
+
   virtual void clock(bool clock_high) = 0;
 
   virtual void reset() = 0;

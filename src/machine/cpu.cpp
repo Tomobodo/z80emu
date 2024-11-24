@@ -1,7 +1,5 @@
 #include "cpu.hpp"
 
-#include <cstring>
-
 CPU::CPU() { reset(); }
 
 void CPU::reset() {
@@ -17,7 +15,7 @@ void CPU::clock(bool clock_high) {
     return;
   }
 
-  if (!clock_high && read_control_bus_pin(ControlBusPin::WAIT)) {
+  if (read_control_bus_pin(ControlBusPin::WAIT)) {
     return;
   }
 

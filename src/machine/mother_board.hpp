@@ -22,6 +22,8 @@ public:
 
   void run();
 
+  void set_frequency(unsigned long long frequency);
+
 private:
   void update();
 
@@ -29,19 +31,17 @@ private:
 
 private:
   bool m_is_on = true;
+  bool m_clock_phase = false;
 
   std::chrono::high_resolution_clock::time_point m_last_time;
-  double m_clock_time_acc;
-  double m_clock_delay;
+  unsigned long long m_clock_time_acc;
+  unsigned long long m_clock_delay;
 
-  unsigned int m_frequency;
+  unsigned long long m_frequency;
 
   std::vector<Component *> m_components;
 
   ControlBus m_control_bus;
   uint16_t m_address_bus;
   uint8_t m_data_bus;
-
-  const uint8_t *m_ROM;
-  uint16_t m_ROM_size;
 };
