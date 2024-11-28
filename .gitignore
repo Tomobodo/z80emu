@@ -1,4 +1,5 @@
 .cache/
+.ccls-cache/
 build/
 libs/
 CMakeUserPresets.json

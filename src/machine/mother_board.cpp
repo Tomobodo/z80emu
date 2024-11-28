@@ -2,7 +2,9 @@
 
 #include "component.hpp"
 
-MotherBoard::MotherBoard(unsigned int frequency) { set_frequency(frequency); };
+MotherBoard::MotherBoard(unsigned int frequency) {
+  set_clock_frequency(frequency);
+};
 
 void MotherBoard::reset() {
   m_control_bus = 0;
@@ -21,7 +23,7 @@ void MotherBoard::run() {
   }
 }
 
-void MotherBoard::set_frequency(unsigned long long frequency) {
+void MotherBoard::set_clock_frequency(unsigned long long frequency) {
   m_frequency = frequency;
   m_clock_delay = (1'000'000'000 / frequency) / 2;
   m_clock_time_acc = 0;
@@ -35,21 +37,24 @@ void MotherBoard::update() {
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - m_last_time);
   m_last_time = now;
 
-  m_clock_time_acc += elapsed.count();
+  if (!m_clock_paused) {
+    m_clock_time_acc += elapsed.count();
 
-  auto cycles_to_do = m_clock_time_acc / m_clock_delay;
-  if (cycles_to_do > MAX_CATCHUP_CYCLES_NUM) {
-    m_emulation_lagging = true;
-    cycles_to_do = MAX_CATCHUP_CYCLES_NUM;
-  } else {
-    m_emulation_lagging = false;
+    auto cycles_to_do = m_clock_time_acc / m_clock_delay;
+
+    if (cycles_to_do > MAX_CATCHUP_CYCLES_NUM) {
+      m_emulation_lagging = true;
+      cycles_to_do = MAX_CATCHUP_CYCLES_NUM;
+    } else {
+      m_emulation_lagging = false;
+    }
+
+    for (auto i = 0; i < cycles_to_do; i++) {
+      clock(m_clock_phase = !m_clock_phase);
+    }
+
+    m_clock_time_acc -= cycles_to_do * m_clock_delay;
   }
-
-  for (auto i = 0; i < cycles_to_do; i++) {
-    clock(m_clock_phase = !m_clock_phase);
-  }
-
-  m_clock_time_acc -= cycles_to_do * m_clock_delay;
 
   double delta_time = static_cast<double>(elapsed.count()) / 1'000'000'000.0;
   for (auto *component : m_components) {

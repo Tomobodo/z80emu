@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
 
   Memory memory;
   CPU z80;
-  DebugCard debugger;
+  DebugCard debugger(z80, memory);
 
   // flash memory
   memory.load_bytes(0x0000, program, program_size);

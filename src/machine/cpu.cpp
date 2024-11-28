@@ -6,10 +6,13 @@ void CPU::reset() {
   m_m_cycle = 0;
   m_t_cycle = 0;
 
-  m_program_counter = 0;
+  // clear registers
+  std::fill(m_registers_memory, m_registers_memory + REGISTERS_BYTES_COUNT, 0);
 }
 
 void CPU::clock(bool clock_high) {
+  uint16_t program_counter = get_register(Register_16::PC);
+
   if (read_control_bus_pin(ControlBusPin::RESET)) {
     reset();
     return;
@@ -25,7 +28,7 @@ void CPU::clock(bool clock_high) {
     write_control_bus_pin(ControlBusPin::RD, true);
     write_control_bus_pin(ControlBusPin::M1, true);
 
-    m_address_bus_out = m_program_counter;
+    m_address_bus_out = program_counter;
     break;
 
   case 1:
@@ -40,7 +43,7 @@ void CPU::clock(bool clock_high) {
   } break;
 
   case 3:
-    m_program_counter++;
+    set_register(Register_16::PC, program_counter + 1);
     break;
   }
 

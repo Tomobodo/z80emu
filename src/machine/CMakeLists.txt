@@ -4,4 +4,5 @@ target_sources(
   cpu.cpp
   mother_board.cpp
   component.cpp
+  registers.cpp
 )
