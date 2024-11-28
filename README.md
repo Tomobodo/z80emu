@@ -54,5 +54,5 @@ cmake --build --preset conan-debug
 3. Running
 
 ```shell
-./build/Debug/z80emu
+./build/Debug/z80emu path/to/binary
 ```
