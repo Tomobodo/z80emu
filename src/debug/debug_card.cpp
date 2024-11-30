@@ -132,7 +132,7 @@ void DebugCard::init_rendering() {
   SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   m_window = SDL_CreateWindow("CPU Debug", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 1200, 720, window_flags);
+                              SDL_WINDOWPOS_CENTERED, 1600, 720, window_flags);
 
   if (m_window == nullptr) {
     std::println(std::cerr, "Error: Could not init debugger window : {}",
@@ -188,7 +188,7 @@ void DebugCard::draw_ui() {
 
   ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDecoration);
 
-  ImGui::Columns(2);
+  ImGui::Columns(3);
 
   draw_clock_section();
   draw_control_bus_section();
@@ -199,6 +199,10 @@ void DebugCard::draw_ui() {
   ImGui::NextColumn();
 
   draw_cpu_section();
+
+  ImGui::NextColumn();
+
+  draw_memory_section();
 
   // Mother board
   ImGui::End();
@@ -387,25 +391,75 @@ void DebugCard::draw_16b_register(Register_16 reg) {
 }
 
 void DebugCard::draw_cpu_section() {
-  ImGui::SeparatorText("8bit Registers");
+  if (ImGui::CollapsingHeader("8bit Registers",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
 
-  ImGui::BeginTable("8 bit", 4,
-                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+    ImGui::BeginTable("8 bit", 4,
+                      ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
-  for (int i = 0; i < REGISTER_8_COUNT; i++) {
-    draw_8b_register(REGISTER_8_DEBUG_ORDER[i]);
+    for (int i = 0; i < REGISTER_8_COUNT; i++) {
+      draw_8b_register(REGISTER_8_DEBUG_ORDER[i]);
+    }
+
+    ImGui::EndTable();
   }
 
-  ImGui::EndTable();
+  if (ImGui::CollapsingHeader("16bit Registers",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
 
-  ImGui::SeparatorText("16bit Registers");
+    ImGui::BeginTable("16 bit", 2,
+                      ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
-  ImGui::BeginTable("16 bit", 2,
-                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+    for (int i = 0; i < REGISTER_16_COUNT; i++) {
+      draw_16b_register(REGISTER_16_DEBUG_ORDER[i]);
+    }
 
-  for (int i = 0; i < REGISTER_16_COUNT; i++) {
-    draw_16b_register(REGISTER_16_DEBUG_ORDER[i]);
+    ImGui::EndTable();
   }
+}
 
-  ImGui::EndTable();
+void DebugCard::draw_memory_section() {
+  if (ImGui::CollapsingHeader("Memory", ImGuiTreeNodeFlags_DefaultOpen)) {
+    constexpr uint16_t MEMORY_READ_SIZE = 64;
+
+    ImGui::BeginChild("MemoryScrollArea", ImVec2(0, 600), true,
+                      ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+    ImGui::BeginTable("Memory", 2,
+                      ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+
+    const uint16_t start_address = 0;
+    const uint8_t *memory_address = m_memory.get_address(start_address);
+
+    ImGui::TableNextColumn();
+    ImGui::Selectable("Address", true);
+
+    ImGui::TableNextColumn();
+    ImGui::Selectable("Value", true);
+
+    for (int i = 0; i < MEMORY_READ_SIZE; i++) {
+      const uint16_t address = start_address + i;
+      const uint8_t value = *(memory_address + i);
+
+      ImU32 cell_bg IM_COL32(0, 0, 0, 0);
+
+      if (address == m_address_bus_in) {
+        cell_bg = IM_COL32(0, 255, 0, 80);
+      }
+
+      ImGui::TableNextColumn();
+      ImGui::Text("0x%04X", address);
+
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg);
+
+      ImGui::TableNextColumn();
+      ImGui::Text("0x%02X", value);
+
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg);
+    }
+
+    ImGui::EndTable();
+
+    ImGui::EndChild();
+  }
 }

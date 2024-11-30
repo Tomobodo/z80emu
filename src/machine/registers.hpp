@@ -1,5 +1,9 @@
 #pragma once
 
+/// 16 bit registers are actually just two 8 bit registers.
+/// They share the same memory space but I chose to
+/// still represent them as 16 bit to ease debugging and value reading a bit
+
 #define REGISTER_8_LIST                                                        \
   X(A, 0)                                                                      \
   X(F, 1)                                                                      \

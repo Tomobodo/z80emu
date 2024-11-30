@@ -40,6 +40,7 @@ private:
   void draw_8b_register(Register_8 reg);
   void draw_16b_register(Register_16 reg);
   void draw_cpu_section();
+  void draw_memory_section();
 
 private:
   static constexpr unsigned int PLOT_DATA_SIZE = 500;

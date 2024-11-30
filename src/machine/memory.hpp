@@ -12,6 +12,8 @@ public:
 
   uint8_t read_address(uint16_t address);
 
+  uint8_t *get_address(uint16_t address);
+
   void load_bytes(uint16_t address, const uint8_t *bytes,
                   uint16_t bytes_number);
 
