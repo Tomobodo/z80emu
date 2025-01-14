@@ -13,7 +13,7 @@ uint8_t *Memory::get_address(uint16_t address) { return m_bytes + address; }
 void Memory::load_bytes(uint16_t address, const uint8_t *bytes,
                         uint16_t bytes_number) {
   memcpy(m_bytes + address, bytes, bytes_number);
-  std::fill(m_bytes + bytes_number, m_bytes + 0xFFFF - bytes_number, 0);
+  std::fill(m_bytes + bytes_number, m_bytes + 0xFFFF, 0);
 }
 
 void Memory::clock(bool clock_high) {

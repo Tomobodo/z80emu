@@ -420,16 +420,30 @@ void DebugCard::draw_cpu_section() {
 
 void DebugCard::draw_memory_section() {
   if (ImGui::CollapsingHeader("Memory", ImGuiTreeNodeFlags_DefaultOpen)) {
-    constexpr uint16_t MEMORY_READ_SIZE = 64;
+    constexpr uint16_t MEMORY_READ_SIZE = 32;
+    constexpr unsigned int ITEMS_HEIGHT = 18;
+    constexpr uint16_t ITEMS_COUNT = 0xFFFF;
 
-    ImGui::BeginChild("MemoryScrollArea", ImVec2(0, 600), true,
+    ImGui::BeginChild("MemoryScrollArea",
+                      ImVec2(0, (1 + ITEMS_HEIGHT) * MEMORY_READ_SIZE), true,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+    const int scroll_y = ImGui::GetScrollY();
+
+    uint16_t start_index = std::clamp(static_cast<int>(scroll_y / ITEMS_HEIGHT),
+                                      0, ITEMS_COUNT - MEMORY_READ_SIZE);
+
+    const uint16_t end_index = start_index + MEMORY_READ_SIZE;
+    const uint8_t *memory_address = m_memory.get_address(start_index);
+
+    ImGui::SetCursorPosY(ITEMS_HEIGHT);
+
+    ImGui::Dummy(ImVec2(0, (ITEMS_COUNT + 1) * ITEMS_HEIGHT));
+
+    ImGui::SetCursorPosY(start_index * ITEMS_HEIGHT + scroll_y % ITEMS_HEIGHT);
 
     ImGui::BeginTable("Memory", 2,
                       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
-
-    const uint16_t start_address = 0;
-    const uint8_t *memory_address = m_memory.get_address(start_address);
 
     ImGui::TableNextColumn();
     ImGui::Selectable("Address", true);
@@ -437,8 +451,8 @@ void DebugCard::draw_memory_section() {
     ImGui::TableNextColumn();
     ImGui::Selectable("Value", true);
 
-    for (int i = 0; i < MEMORY_READ_SIZE; i++) {
-      const uint16_t address = start_address + i;
+    for (int i = 0; i <= MEMORY_READ_SIZE; i++) {
+      const uint16_t address = start_index + i;
       const uint8_t value = *(memory_address + i);
 
       ImU32 cell_bg IM_COL32(0, 0, 0, 0);
