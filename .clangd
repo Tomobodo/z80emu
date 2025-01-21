@@ -1,3 +1,10 @@
 Index:
   External: true
   File: /tmp/clangd-index
+
+CompileFlags:
+  Add: [-Wno-unknown-warning-option]
+
+Checks:
+  clang-tidy: true
+  clang-tidy-checks: '*'
