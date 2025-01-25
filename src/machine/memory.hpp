@@ -2,13 +2,14 @@
 
 #include "component.hpp"
 
+#include <array>
 #include <cstdint>
 
 constexpr uint16_t MEMORY_SIZE = 0xFFFF;
 
 class Memory : public Component {
 public:
-  Memory() {};
+  Memory() = default;
 
   uint8_t read_address(uint16_t address);
 
@@ -22,5 +23,5 @@ public:
   void clock(bool clock_high) override;
 
 private:
-  uint8_t m_bytes[MEMORY_SIZE];
+  std::array<uint8_t, MEMORY_SIZE> m_bytes{};
 };

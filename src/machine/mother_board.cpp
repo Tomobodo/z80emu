@@ -2,7 +2,7 @@
 
 #include "component.hpp"
 
-MotherBoard::MotherBoard(unsigned int frequency) {
+MotherBoard::MotherBoard(const unsigned int frequency) {
   set_clock_frequency(frequency);
 };
 
@@ -23,7 +23,7 @@ void MotherBoard::run() {
   }
 }
 
-void MotherBoard::set_clock_frequency(unsigned long long frequency) {
+void MotherBoard::set_clock_frequency(const unsigned long long frequency) {
   m_frequency = frequency;
   m_clock_delay = (1'000'000'000 / frequency) / 2;
   m_clock_time_acc = 0;
@@ -32,8 +32,9 @@ void MotherBoard::set_clock_frequency(unsigned long long frequency) {
 void MotherBoard::power_off() { m_is_on = false; }
 
 void MotherBoard::update() {
-  auto now = std::chrono::high_resolution_clock::now();
-  auto elapsed =
+  const auto now = std::chrono::high_resolution_clock::now();
+
+  const auto elapsed =
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - m_last_time);
   m_last_time = now;
 
@@ -56,7 +57,8 @@ void MotherBoard::update() {
     m_clock_time_acc -= cycles_to_do * m_clock_delay;
   }
 
-  double delta_time = static_cast<double>(elapsed.count()) / 1'000'000'000.0;
+  const double delta_time =
+      static_cast<double>(elapsed.count()) / 1'000'000'000.0;
   for (auto *component : m_components) {
     component->update(delta_time);
   }
@@ -64,8 +66,7 @@ void MotherBoard::update() {
   m_last_time = now;
 }
 
-void MotherBoard::clock(bool clock_high) {
-
+void MotherBoard::clock(const bool clock_high) {
   for (auto *component : m_components) {
     component->set_control_bus_in(m_control_bus);
     component->set_data_bus_in(m_data_bus);

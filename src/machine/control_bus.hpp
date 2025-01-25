@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 using ControlBus = uint16_t;
@@ -19,14 +20,18 @@ using ControlBus = uint16_t;
   X(BUSRQ, 2048)                                                               \
   X(BUSACK, 4096)
 
-#define X(name, value) name = value,
-enum class ControlBusPin : uint16_t { CONTROL_BUS_PIN_LIST };
+enum class ControlBusPin : uint16_t {
+#define X(name, value) name = (value),
+  CONTROL_BUS_PIN_LIST
 #undef X
+};
 
 #define X(name, value) #name,
-constexpr const char *CONTROL_BUS_PIN_NAMES[] = {CONTROL_BUS_PIN_LIST};
+constexpr const std::array<const char *, 13> CONTROL_BUS_PIN_NAMES = {
+    CONTROL_BUS_PIN_LIST};
 #undef X
 
 #define X(name, value) ControlBusPin::name,
-constexpr const ControlBusPin CONTROL_BUS_PINS[] = {CONTROL_BUS_PIN_LIST};
+constexpr const std::array<ControlBusPin, 13> CONTROL_BUS_PINS = {
+    CONTROL_BUS_PIN_LIST};
 #undef X

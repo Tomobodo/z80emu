@@ -4,10 +4,32 @@
 #include "mother_board.hpp"
 #include <cstdint>
 
+struct ComponentConfig {
+  ControlBus control_bus_in;
+  ControlBus control_bus_out;
+  uint16_t address_bus_in;
+  uint16_t address_bus_out;
+  uint8_t data_bus_in;
+  uint8_t data_bus_out;
+};
+
 class Component {
 public:
-  Component() {}
-  virtual ~Component() {}
+  Component() = default;
+  Component(const Component &) = default;
+  Component(Component &&) = delete;
+  Component &operator=(const Component &) = default;
+  Component &operator=(Component &&) = delete;
+
+  Component(ComponentConfig config, MotherBoard *mother_board_ptr)
+      : m_control_bus_in(config.control_bus_in),
+        m_control_bus_out(config.control_bus_out),
+        m_address_bus_in(config.address_bus_in),
+        m_address_bus_out(config.address_bus_out),
+        m_data_bus_in(config.data_bus_in), m_data_bus_out(config.data_bus_out),
+        m_mother_board(mother_board_ptr) {}
+
+  virtual ~Component() = default;
 
   virtual void update(double delta_time) {};
 
@@ -16,41 +38,42 @@ public:
   virtual void reset() = 0;
 
   // control bus
-  inline void set_control_bus_in(ControlBus bus_in) {
-    m_control_bus_in = bus_in;
-  };
+  void set_control_bus_in(ControlBus bus_in) { m_control_bus_in = bus_in; };
 
-  inline ControlBus get_control_bus_out() { return m_control_bus_out; }
+  [[nodiscard]] ControlBus get_control_bus_out() const {
+    return m_control_bus_out;
+  }
 
   // data bus
-  inline void set_data_bus_in(uint8_t bus_in) { m_data_bus_in = bus_in; }
+  void set_data_bus_in(uint8_t bus_in) { m_data_bus_in = bus_in; }
 
-  inline uint8_t get_data_bus_out() { return m_data_bus_out; }
+  [[nodiscard]] uint8_t get_data_bus_out() const { return m_data_bus_out; }
 
   // address bus
-  inline void set_address_bus_in(uint16_t bus_in) { m_address_bus_in = bus_in; }
+  void set_address_bus_in(uint16_t bus_in) { m_address_bus_in = bus_in; }
 
-  inline uint16_t get_address_bus_out() { return m_address_bus_out; }
+  [[nodiscard]] uint16_t get_address_bus_out() const {
+    return m_address_bus_out;
+  }
 
-  inline void set_mother_board(MotherBoard *mother_board) {
+  void set_mother_board(MotherBoard *mother_board) {
     m_mother_board = mother_board;
   }
 
 protected:
-  bool read_control_bus_pin(ControlBusPin pin);
+  [[nodiscard]] bool read_control_bus_pin(ControlBusPin pin) const;
   void write_control_bus_pin(ControlBusPin pin, bool value);
 
-protected:
-  ControlBus m_control_bus_in;
-  ControlBus m_control_bus_out;
+  ControlBus m_control_bus_in{};
+  ControlBus m_control_bus_out{};
 
-  uint16_t m_address_bus_in;
-  uint16_t m_address_bus_out;
+  uint16_t m_address_bus_in{};
+  uint16_t m_address_bus_out{};
 
-  uint8_t m_data_bus_in;
-  uint8_t m_data_bus_out;
+  uint8_t m_data_bus_in{};
+  uint8_t m_data_bus_out{};
 
-  MotherBoard *m_mother_board;
+  MotherBoard *m_mother_board{};
 
 private:
 };

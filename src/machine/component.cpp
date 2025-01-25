@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-bool Component::read_control_bus_pin(ControlBusPin pin) {
+bool Component::read_control_bus_pin(ControlBusPin pin) const {
   return get_bit_with_mask(m_control_bus_in, (uint16_t)pin);
 }
 

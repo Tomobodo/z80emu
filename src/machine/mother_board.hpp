@@ -10,12 +10,18 @@ class Component;
 
 class MotherBoard {
 public:
-  MotherBoard(unsigned int frequency);
-  ~MotherBoard() {};
+  MotherBoard(const MotherBoard &) = default;
+  MotherBoard(MotherBoard &&) = delete;
+  MotherBoard &operator=(const MotherBoard &) = default;
+  MotherBoard &operator=(MotherBoard &&) = delete;
+  explicit MotherBoard(unsigned int frequency);
+
+  ~MotherBoard() = default;
 
   template <typename T>
-  typename std::enable_if<std::is_base_of<Component, T>::value>::type
-  add_component(T &component) {
+  void add_component(T &component)
+    requires(std::is_base_of_v<Component, T>)
+  {
     m_components.push_back(&component);
     component.set_mother_board(this);
   }
@@ -28,20 +34,23 @@ public:
 
   void power_off();
 
-  inline void set_clock_paused(bool clock_paused) {
+  void set_clock_paused(const bool clock_paused) {
     m_clock_paused = clock_paused;
   }
 
-  inline bool get_emulation_lagging() { return m_emulation_lagging; };
+  [[nodiscard]] bool get_emulation_lagging() const {
+    return m_emulation_lagging;
+  };
 
-  inline unsigned long long get_frequency() { return m_frequency; };
+  [[nodiscard]] unsigned long long get_frequency() const {
+    return m_frequency;
+  };
 
 private:
   void update();
 
   void clock(bool clock_high);
 
-private:
   static constexpr unsigned int MAX_CATCHUP_CYCLES_NUM = 250'000;
 
   bool m_is_on = true;
@@ -50,14 +59,14 @@ private:
   bool m_emulation_lagging = false;
 
   std::chrono::high_resolution_clock::time_point m_last_time;
-  unsigned long long m_clock_time_acc;
-  unsigned long long m_clock_delay;
+  unsigned long long m_clock_time_acc{};
+  unsigned long long m_clock_delay{};
 
-  unsigned long long m_frequency;
+  unsigned long long m_frequency{};
 
   std::vector<Component *> m_components;
 
-  ControlBus m_control_bus;
-  uint16_t m_address_bus;
-  uint8_t m_data_bus;
+  ControlBus m_control_bus{};
+  uint16_t m_address_bus{};
+  uint8_t m_data_bus{};
 };
