@@ -4,6 +4,7 @@
 /// They share the same memory space but I chose to
 /// still represent them as 16 bit to ease debugging and value reading a bit
 
+#include <cstdint>
 #define REGISTER_8_LIST                                                        \
   X(A, 0)                                                                      \
   X(F, 1)                                                                      \
@@ -25,24 +26,24 @@
   X(R, 17)
 
 #define REGISTER_16_LIST                                                       \
-  X(BC, 1)                                                                     \
-  X(DE, 2)                                                                     \
-  X(HL, 3)                                                                     \
-  X(BC_P, 5)                                                                   \
-  X(DE_P, 6)                                                                   \
-  X(HL_P, 7)                                                                   \
-  X(IX, 9)                                                                     \
-  X(IY, 10)                                                                    \
-  X(SP, 11)                                                                    \
-  X(PC, 12)
+  X(BC, 2)                                                                     \
+  X(DE, 4)                                                                     \
+  X(HL, 6)                                                                     \
+  X(BC_P, 10)                                                                  \
+  X(DE_P, 12)                                                                  \
+  X(HL_P, 14)                                                                  \
+  X(IX, 18)                                                                    \
+  X(IY, 20)                                                                    \
+  X(SP, 22)                                                                    \
+  X(PC, 24)
 
 constexpr unsigned int REGISTER_8_COUNT = 18;
 constexpr unsigned int REGISTER_16_COUNT = 10;
 
 #define X(name, value) name = value,
-enum class Register_8 : int { REGISTER_8_LIST };
+enum class Register_8 : uint8_t { REGISTER_8_LIST };
 
-enum class Register_16 : int { REGISTER_16_LIST };
+enum class Register_16 : uint8_t { REGISTER_16_LIST };
 #undef X
 
 const char *register_8_to_name(Register_8 reg);
