@@ -2,6 +2,8 @@
 
 #include "component.hpp"
 
+constexpr uint64_t NANOSECONDS_IN_ONE_SECOND = 1'000'000'000;
+
 MotherBoard::MotherBoard(const unsigned int frequency) {
   set_clock_frequency(frequency);
 };
@@ -25,7 +27,7 @@ void MotherBoard::run() {
 
 void MotherBoard::set_clock_frequency(const unsigned long long frequency) {
   m_frequency = frequency;
-  m_clock_delay = (1'000'000'000 / frequency) / 2;
+  m_clock_delay = (NANOSECONDS_IN_ONE_SECOND / frequency) / 2;
   m_clock_time_acc = 0;
 }
 
@@ -58,7 +60,7 @@ void MotherBoard::update() {
   }
 
   const double delta_time =
-      static_cast<double>(elapsed.count()) / 1'000'000'000.0;
+      static_cast<double>(elapsed.count()) / NANOSECONDS_IN_ONE_SECOND;
   for (auto *component : m_components) {
     component->update(delta_time);
   }

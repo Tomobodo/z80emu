@@ -20,14 +20,14 @@ constexpr uint16_t RAM_SIZE = 0xFFFF;
 constexpr unsigned int FREQ = 4;
 
 enum class Register : uint8_t {
-  B, // 000
-  C, // 001
-  D, // 010
-  E, // 011
-  H, // 100
-  L, // 101
+  B,  // 000
+  C,  // 001
+  D,  // 010
+  E,  // 011
+  H,  // 100
+  L,  // 101
   HL, // 110
-  A, // 111
+  A,  // 111
 };
 
 enum class RegisterPair : uint8_t { BC, DE, HL, AF };
@@ -56,14 +56,12 @@ uint16_t stack_pointer;
 std::byte registers_values[REGISTERS_COUNT];
 std::byte memory[RAM_SIZE];
 
-template<typename T>
-T get_reg_value(const Register reg) {
+template <typename T> T get_reg_value(const Register reg) {
   const auto index = static_cast<unsigned int>(reg);
   return static_cast<T>(registers_values[index]);
 }
 
-template<typename T>
-void set_reg_value(const Register reg, T value) {
+template <typename T> void set_reg_value(const Register reg, T value) {
   const auto index = static_cast<unsigned int>(reg);
   registers_values[index] = static_cast<std::byte>(value);
 }
@@ -77,8 +75,7 @@ void reset() {
   program_counter = 0;
   stack_pointer = RAM_SIZE - 1;
 
-  std::fill_n(registers_values, REGISTERS_COUNT,
-              static_cast<std::byte>(0));
+  std::fill_n(registers_values, REGISTERS_COUNT, static_cast<std::byte>(0));
   std::fill_n(memory, RAM_SIZE, static_cast<std::byte>(0));
 }
 
@@ -134,13 +131,13 @@ void handle_arithmetic_op(const uint8_t opcode) {
   const auto src_value = get_reg_value<uint8_t>(reg);
 
   switch (op) {
-    case OpArithmetic::ADD:
-      set_reg_value(Register::A, dest_value + src_value);
-      break;
+  case OpArithmetic::ADD:
+    set_reg_value(Register::A, dest_value + src_value);
+    break;
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
   if (argc < 2) {
     std::println(std::cerr, "No program provided.");
     return EXIT_FAILURE;
@@ -170,18 +167,18 @@ int main(int argc, char **argv) {
     const OpTypes optype = static_cast<OpTypes>((opcode & 0b11000000) >> 6);
 
     switch (optype) {
-      case OpTypes::LOAD: {
-        handle_load_op(opcode);
-        break;
-      }
-      case OpTypes::REGISTER_OP:
-        exit_loop = handle_register_op(opcode);
-        break;
-      case OpTypes::ARITHMETIC:
-        handle_arithmetic_op(opcode);
-        break;
-      case OpTypes::MISC_EX:
-        break;
+    case OpTypes::LOAD: {
+      handle_load_op(opcode);
+      break;
+    }
+    case OpTypes::REGISTER_OP:
+      exit_loop = handle_register_op(opcode);
+      break;
+    case OpTypes::ARITHMETIC:
+      handle_arithmetic_op(opcode);
+      break;
+    case OpTypes::MISC_EX:
+      break;
     }
 
     program_counter++;
@@ -201,7 +198,7 @@ int main(int argc, char **argv) {
   file.seekg(0, std::ios::beg);
 
   uint8_t *program = new uint8_t[program_size];
-  file.read((char *) program, program_size);
+  file.read((char *)program, program_size);
   file.close();
 
   Memory memory;

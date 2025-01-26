@@ -7,7 +7,7 @@ void CPU::reset() {
   m_t_cycle = 0;
 
   // clear registers
-  std::fill(m_registers_memory, m_registers_memory + REGISTERS_BYTES_COUNT, 0);
+  std::fill(m_registers_memory.data(), &*(m_registers_memory.end() - 1), 0);
 }
 
 void CPU::clock(bool clock_high) {
@@ -48,6 +48,7 @@ void CPU::clock(bool clock_high) {
   }
 
   m_t_cycle++;
-  if (m_t_cycle > 3)
+  if (m_t_cycle > 3) {
     m_t_cycle = 0;
+  }
 }
