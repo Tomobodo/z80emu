@@ -5,7 +5,7 @@
 #include <array>
 #include <cstdint>
 
-constexpr uint16_t MEMORY_SIZE = 0xFFFF;
+constexpr uint32_t MEMORY_SIZE = 0x10000;
 
 class Memory : public Component {
 public:
