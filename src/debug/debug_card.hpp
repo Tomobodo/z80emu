@@ -21,6 +21,8 @@ public:
   void reset() override;
 
 private:
+  // ----- METHODS -----
+
   void init();
 
   void init_initial_state();
@@ -42,7 +44,8 @@ private:
   void draw_cpu_section();
   void draw_memory_section();
 
-private:
+  // ----- STATIC FIELDS -----
+
   static constexpr unsigned int PLOT_DATA_SIZE = 500;
 
   static constexpr ImVec4 RED_LED_OFF = ImVec4(0.85f, 0.3f, 0.2f, 0.4f);
@@ -63,6 +66,8 @@ private:
       Register_16::HL, Register_16::HL_P, Register_16::IX, Register_16::IY,
       Register_16::SP, Register_16::PC};
 
+  // ----- FIELDS -----
+
   int m_win_width, m_win_height;
 
   SDL_Event m_window_events;
@@ -73,7 +78,7 @@ private:
   ImGuiContext *m_imgui_context;
 
   bool m_initialized;
-  bool m_clock_high;
+  bool m_clock_active;
 
   bool m_paused;
   bool m_step;

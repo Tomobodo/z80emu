@@ -22,15 +22,15 @@ DebugCard::DebugCard(CPU &cpu, Memory &memory) : m_cpu(cpu), m_memory(memory) {
 
 DebugCard::~DebugCard() { deinit(); }
 
-void DebugCard::clock(bool clock_high) {
-  if (m_half_step || (m_step && clock_high)) {
+void DebugCard::clock(bool clock_active) {
+  if (m_half_step || (m_step && clock_active)) {
     set_paused(true);
 
     m_half_step = false;
     m_step = false;
   }
 
-  m_clock_high = clock_high;
+  m_clock_active = clock_active;
   m_control_bus_out = m_control_bus_out_toggle;
 }
 
@@ -40,9 +40,11 @@ struct get_control_bus_plot_value_params {
 };
 
 float get_control_bus_plot_value(void *data_in, int index) {
-  auto params = static_cast<get_control_bus_plot_value_params *>(data_in);
+  auto *const params =
+      static_cast<get_control_bus_plot_value_params *>(data_in);
   uint16_t value = params->data[index];
-  return (value >> params->bit) & 1;
+  const float plot_value = (value >> params->bit) & 1;
+  return 1.F - plot_value;
 }
 
 void DebugCard::update(double delta_time) {
@@ -52,15 +54,15 @@ void DebugCard::update(double delta_time) {
   // update data
   if (!m_paused) {
     unsigned int data_index = m_plot_data_offset % PLOT_DATA_SIZE;
-    m_clock_plot_data[data_index] = m_clock_high;
-    m_control_bus_plot_data[data_index] = m_control_bus_in;
+    m_clock_plot_data[data_index] = m_clock_active;
+    m_control_bus_plot_data[data_index] = m_mother_board->get_control_bus();
 
     m_plot_data_offset++;
   }
 
   // render
 
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO &imgui_io = ImGui::GetIO();
   bool show_demo_window = true;
 
   while (SDL_PollEvent(&m_window_events) != 0) {
@@ -80,8 +82,8 @@ void DebugCard::update(double delta_time) {
   draw_ui();
 
   ImGui::Render();
-  SDL_RenderSetScale(m_renderer, io.DisplayFramebufferScale.x,
-                     io.DisplayFramebufferScale.y);
+  SDL_RenderSetScale(m_renderer, imgui_io.DisplayFramebufferScale.x,
+                     imgui_io.DisplayFramebufferScale.y);
   SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
   SDL_RenderClear(m_renderer);
 
@@ -254,11 +256,11 @@ void DebugCard::draw_clock_section() {
 void DebugCard::draw_control_bus_section() {
   if (ImGui::CollapsingHeader("Control Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
     for (int bit = 0; bit < 13; bit++) {
-
+      const std::string pin_name = CONTROL_BUS_PIN_NAMES[bit];
       get_control_bus_plot_value_params params = {bit, m_control_bus_plot_data};
-      ImGui::PlotLines(std::format("##{}", CONTROL_BUS_PIN_NAMES[bit]).c_str(),
+      ImGui::PlotLines(std::format("##{}", pin_name).c_str(),
                        &get_control_bus_plot_value, &params, PLOT_DATA_SIZE,
-                       m_plot_data_offset, 0, 0, 1);
+                       m_plot_data_offset, nullptr, 0, 1);
 
       bool bit_on = (m_control_bus_out_toggle >> bit) & 1;
 

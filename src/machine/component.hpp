@@ -33,7 +33,7 @@ public:
 
   virtual void update(double delta_time) {};
 
-  virtual void clock(bool clock_high) = 0;
+  virtual void clock(bool clock_high);
 
   virtual void reset() = 0;
 
@@ -61,8 +61,12 @@ public:
   }
 
 protected:
+  [[nodiscard]] bool control_bus_pin_changed_to(ControlBusPin pin,
+                                                bool to_value) const;
   [[nodiscard]] bool read_control_bus_pin(ControlBusPin pin) const;
   void write_control_bus_pin(ControlBusPin pin, bool value);
+
+  ControlBus m_previous_bus_in{};
 
   ControlBus m_control_bus_in{};
   ControlBus m_control_bus_out{};

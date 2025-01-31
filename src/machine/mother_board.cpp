@@ -1,8 +1,7 @@
 #include "mother_board.hpp"
 
 #include "component.hpp"
-
-constexpr uint64_t NANOSECONDS_IN_ONE_SECOND = 1'000'000'000;
+#include "utils/constants.hpp"
 
 MotherBoard::MotherBoard(const unsigned int frequency) {
   set_clock_frequency(frequency);
@@ -68,13 +67,13 @@ void MotherBoard::update() {
   m_last_time = now;
 }
 
-void MotherBoard::clock(const bool clock_high) {
+void MotherBoard::clock(const bool clock_active) {
   for (auto *component : m_components) {
     component->set_control_bus_in(m_control_bus);
     component->set_data_bus_in(m_data_bus);
     component->set_address_bus_in(m_address_bus);
 
-    component->clock(clock_high);
+    component->clock(clock_active);
   }
 
   m_control_bus = 0;

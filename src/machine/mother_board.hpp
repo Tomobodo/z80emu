@@ -46,10 +46,12 @@ public:
     return m_frequency;
   };
 
+  [[nodiscard]] uint16_t get_control_bus() const { return m_control_bus; }
+
 private:
   void update();
 
-  void clock(bool clock_high);
+  void clock(bool clock_active);
 
   static constexpr unsigned int MAX_CATCHUP_CYCLES_NUM = 250'000;
 

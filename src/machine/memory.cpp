@@ -16,10 +16,12 @@ void Memory::load_bytes(uint16_t address, const uint8_t *bytes,
 
 void Memory::clock(bool clock_high) {
   if (read_control_bus_pin(ControlBusPin::M1) &&
-      read_control_bus_pin(ControlBusPin::MREQ) &&
-      read_control_bus_pin(ControlBusPin::RD)) { // fetch op code op
+      read_control_bus_pin(ControlBusPin::RD) &&
+      control_bus_pin_changed_to(ControlBusPin::MREQ, true)) {
 
     // eventually simulate delay here and a wait
     m_data_bus_out = m_bytes.at(m_address_bus_in);
   }
+
+  Component::clock(clock_high);
 }
