@@ -1,9 +1,9 @@
 #pragma once
 
 #include "machine/component.hpp"
-#include "machine/cpu.hpp"
+#include "machine/cpu/cpu.hpp"
+#include "machine/cpu/registers.hpp"
 #include "machine/memory.hpp"
-#include "machine/registers.hpp"
 
 #include <SDL_events.h>
 #include <SDL_render.h>

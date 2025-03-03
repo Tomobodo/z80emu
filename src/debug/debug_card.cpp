@@ -1,7 +1,7 @@
 #include "debug_card.hpp"
 #include "imgui.h"
 #include "machine/control_bus.hpp"
-#include "machine/registers.hpp"
+#include "machine/cpu/registers.hpp"
 #include "utils/bit_operations.hpp"
 
 #include <algorithm>

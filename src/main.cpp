@@ -8,7 +8,7 @@
 
 #include "debug/debug_card.hpp"
 
-#include "machine/cpu.hpp"
+#include "machine/cpu/cpu.hpp"
 #include "machine/memory.hpp"
 #include "machine/mother_board.hpp"
 
@@ -64,11 +64,6 @@ template <typename T> T get_reg_value(const Register reg) {
 template <typename T> void set_reg_value(const Register reg, T value) {
   const auto index = static_cast<unsigned int>(reg);
   registers_values[index] = static_cast<std::byte>(value);
-}
-
-void print_reg(const Register reg) {
-  auto reg_value = get_reg_value<unsigned int>(reg);
-  std::println("Value in {} : {}", static_cast<unsigned int>(reg), reg_value);
 }
 
 void reset() {
@@ -183,8 +178,6 @@ int main(int argc, char *argv[]) {
 
     program_counter++;
   }
-
-  print_reg(Register::A);
 
   // load program
   std::ifstream file(program_path, std::ios::binary);
