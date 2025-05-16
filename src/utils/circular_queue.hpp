@@ -16,20 +16,26 @@ public:
     }
   };
 
-  T dequeue() {
+  auto dequeue() -> T {
     T item = std::move(m_data[m_head]);
     m_head = (m_head + 1) % Capacity;
     --m_size;
     return item;
   };
 
-  T const &head() const { return m_data[m_head]; }
+  void clear() {
+    m_head = 0;
+    m_tail = 0;
+    m_size = 0;
+  };
 
-  [[nodiscard]] bool empty() const { return m_size == 0; };
+  auto head() const -> T const & { return m_data[m_head]; }
 
-  [[nodiscard]] bool full() const { return m_size == Capacity; };
+  [[nodiscard]] auto empty() const -> bool { return m_size == 0; };
 
-  [[nodiscard]] size_t size() const { return m_size; };
+  [[nodiscard]] auto full() const -> bool { return m_size == Capacity; };
+
+  [[nodiscard]] auto size() const -> size_t { return m_size; };
 
 private:
   std::array<T, Capacity> m_data;

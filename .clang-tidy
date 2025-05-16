@@ -1,19 +1,46 @@
-Checks: "*,
-        -abseil-*,
-        -altera-*,
-        -android-*,
-        -fuchsia-*,
-        -google-*,
-        -llvm*,
-        -modernize-use-trailing-return-type,
-        -zircon-*,
-        -readability-else-after-return,
-        -readability-static-accessed-through-instance,
-        -readability-avoid-const-params-in-decls,
-        -cppcoreguidelines-non-private-member-variables-in-classes,
-        -misc-non-private-member-variables-in-classes,
-        -cppcoreguidelines-pro-type-reinterpret-cast
-"
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle:     none
+Checks: "-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*"
+WarningsAsErrors: "*"
+HeaderFilterRegex: ".*"
+CheckOptions:
+  modernize-avoid-c-arrays: true
+  modernize-deprecated-headers: true
+  modernize-loop-convert: true
+  modernize-pass-by-value: true
+  modernize-raw-string-literals: true
+  modernize-replace-auto_ptr: true
+  modernize-replace-random-shuffle: true
+  modernize-replace-std_bind: true
+  modernize-replace-std_unique_ptr: true
+  modernize-shrink-to-fit: true
+  modernize-unary-plus: true
+  modernize-use-emplace: true
+  modernize-use-noexcept: true
+  modernize-use-override: true
+  modernize-use-transparent-operators: true
+
+  clang-analyzer-apiModeling.StdLibraryFunctions: true
+  clang-analyzer-core.CallAndMessage: true
+  clang-analyzer-core.NonNullParamChecker: true
+  clang-analyzer-core.NullDereference: true
+  clang-analyzer-core.UndefinedBinaryOperatorResult: true
+  clang-analyzer-core.VLASize: true
+  clang-analyzer-cplusplus.NewDeleteLeaks: true
+  clang-analyzer-deadcode.UnreachableCode: true
+  clang-analyzer-security.insecureAPI.strcpy: true
+  clang-analyzer-security.insecureAPI.vfork: true
+  clang-analyzer-unix.MallocSizeof: true
+
+  cppcoreguidelines-avoid-magic-numbers: warning
+  cppcoreguidelines-interfaces-global-init: error
+  cppcoreguidelines-owning-memory: true
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay: true
+  cppcoreguidelines-pro-bounds-constant-array-index: true
+  cppcoreguidelines-pro-bounds-pointer-arithmetic: true
+  cppcoreguidelines-pro-type-const-cast: true
+  cppcoreguidelines-pro-type-cstyle-cast: true
+  cppcoreguidelines-pro-type-member-init: error
+  cppcoreguidelines-pro-type-reinterpret-cast: true
+  cppcoreguidelines-pro-type-static-cast-downcast: true
+  cppcoreguidelines-pro-type-union-access: true
+  cppcoreguidelines-slicing: true
+  cppcoreguidelines-special-member-functions: error

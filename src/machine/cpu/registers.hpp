@@ -6,36 +6,39 @@
 
 #include <cstdint>
 #define REGISTER_8_LIST                                                        \
-  X(A, 0)                                                                      \
-  X(F, 1)                                                                      \
-  X(B, 2)                                                                      \
-  X(C, 3)                                                                      \
-  X(D, 4)                                                                      \
-  X(E, 5)                                                                      \
-  X(H, 6)                                                                      \
-  X(L, 7)                                                                      \
+  X(B, 0)                                                                      \
+  X(C, 1)                                                                      \
+  X(D, 2)                                                                      \
+  X(E, 3)                                                                      \
+  X(H, 4)                                                                      \
+  X(L, 5)                                                                      \
+  X(A, 6)                                                                      \
+  X(F, 7)                                                                      \
   X(I, 16)                                                                     \
   X(R, 17)                                                                     \
-  X(A_P, 18)                                                                   \
-  X(F_P, 19)                                                                   \
-  X(B_P, 20)                                                                   \
-  X(C_P, 21)                                                                   \
-  X(D_P, 22)                                                                   \
-  X(E_P, 23)                                                                   \
-  X(H_P, 24)                                                                   \
-  X(L_P, 25)
+  X(B_P, 18)                                                                   \
+  X(C_P, 19)                                                                   \
+  X(D_P, 20)                                                                   \
+  X(E_P, 21)                                                                   \
+  X(H_P, 22)                                                                   \
+  X(L_P, 23)                                                                   \
+  X(A_P, 24)                                                                   \
+  X(F_P, 25)
 
 #define REGISTER_16_LIST                                                       \
-  X(BC, 2)                                                                     \
-  X(DE, 4)                                                                     \
-  X(HL, 6)                                                                     \
+  X(BC, 0)                                                                     \
+  X(DE, 2)                                                                     \
+  X(HL, 4)                                                                     \
   X(IX, 8)                                                                     \
+  X(AF, 6)                                                                     \
   X(IY, 10)                                                                    \
   X(PC, 12)                                                                    \
   X(SP, 14)                                                                    \
-  X(BC_P, 20)                                                                  \
-  X(DE_P, 22)                                                                  \
-  X(HL_P, 24)
+  X(IR, 16)                                                                    \
+  X(BC_P, 18)                                                                  \
+  X(DE_P, 20)                                                                  \
+  X(HL_P, 22)                                                                  \
+  X(AF_P, 24)
 
 constexpr unsigned int REGISTER_8_COUNT = 18;
 constexpr unsigned int REGISTER_16_COUNT = 10;
