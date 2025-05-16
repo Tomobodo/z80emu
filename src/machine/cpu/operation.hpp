@@ -8,7 +8,6 @@ enum class OperationType : std::uint8_t {
   MEMORY_RW,
   IO_RW,
   INTERUPT_ACK,
-  ALU_ADD
 };
 
 struct Operation {

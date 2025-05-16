@@ -34,17 +34,6 @@ public:
            (m_registers_memory.at(index + 1) << CHAR_BIT);
   };
 
-  template <typename T> void set_instruction_executor() {
-    m_instruction_executor = std::make_unique<T>();
-  }
-
-  void push_operation(Operation operation);
-
-private:
-  // ----- METHODS -----
-
-  void reset() override;
-
   void set_register(Register_8 reg, uint8_t value) {
     auto index = static_cast<uint8_t>(reg);
     m_registers_memory.at(index) = value;
@@ -56,6 +45,17 @@ private:
     m_registers_memory.at(index + 1) = (value >> CHAR_BIT) & UINT8_MAX;
   }
 
+  template <typename T> void set_instruction_executor() {
+    m_instruction_executor = std::make_unique<T>();
+  }
+
+  void push_operation(Operation operation);
+
+private:
+  // ----- METHODS -----
+
+  void reset() override;
+
   void handle_operation(Operation &operation, bool clock_active);
 
   auto handle_opcode_fetch(bool clock_active) -> bool;
@@ -65,8 +65,6 @@ private:
   auto handle_memory_read(bool clock_active) -> bool;
 
   auto handle_memory_write(bool clock_active) -> bool;
-
-  auto handle_alu_add(bool clock_active) -> bool;
 
   // ----- STATIC FIELDS -----
   static constexpr uint8_t REGISTERS_BYTES_COUNT = 208 / CHAR_BIT;

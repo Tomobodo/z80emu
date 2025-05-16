@@ -25,9 +25,10 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
     break;
 
   case 0x80: /* ADD B */
-    cpu->push_operation({.type = OperationType::ALU_ADD,
-                         .source = static_cast<uint16_t>(Register_8::B),
-                         .dest = static_cast<uint16_t>(Register_8::A)});
-    break;
+  {
+    const auto result =
+        cpu->get_register(Register_8::A) + cpu->get_register(Register_8::B);
+    cpu->set_register(Register_8::A, result);
+  } break;
   }
 }

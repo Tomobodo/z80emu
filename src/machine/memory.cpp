@@ -16,8 +16,7 @@ void Memory::load_bytes(uint16_t address, const uint8_t *bytes,
 }
 
 void Memory::clock(bool clock_high) {
-  if (read_control_bus_pin(ControlBusPin::M1) &&
-      read_control_bus_pin(ControlBusPin::RD) &&
+  if (read_control_bus_pin(ControlBusPin::RD) &&
       (control_bus_pin_changed_to(ControlBusPin::MREQ, true) ||
        m_memory_loading_clock_cycles > 0)) {
 

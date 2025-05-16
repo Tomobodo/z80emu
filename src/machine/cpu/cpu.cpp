@@ -10,11 +10,13 @@
 
 CPU::CPU() {
   m_operation_handlers.resize(30);
+
   m_operation_handlers[(size_t)OperationType::OPCODE_FETCH] =
       &CPU::handle_opcode_fetch;
+
   m_operation_handlers[(size_t)OperationType::SET_8_BIT_REGISTER_DIRECT] =
       &CPU::handle_set_8_bit_register_direct;
-  m_operation_handlers[(size_t)OperationType::ALU_ADD] = &CPU::handle_alu_add;
+
   reset();
 }
 
@@ -135,8 +137,6 @@ auto CPU::handle_set_8_bit_register_direct(bool clock_active) -> bool {
   case 0:
     if (clock_active) {
       m_address_bus_out = m_current_operation->source;
-      write_control_bus_pin(ControlBusPin::RFSH, false);
-      write_control_bus_pin(ControlBusPin::M1, true);
     } else {
       write_control_bus_pin(ControlBusPin::MREQ, true);
       write_control_bus_pin(ControlBusPin::RD, true);
@@ -147,15 +147,12 @@ auto CPU::handle_set_8_bit_register_direct(bool clock_active) -> bool {
     break; // let memory write the value on the data bus
 
   case 2: {
-    write_control_bus_pin(ControlBusPin::M1, false);
-    write_control_bus_pin(ControlBusPin::RFSH, true);
-
     if (clock_active) {
-      write_control_bus_pin(ControlBusPin::MREQ, false);
-      write_control_bus_pin(ControlBusPin::RD, false);
-
       auto target_register = static_cast<Register_8>(m_current_operation->dest);
       set_register(target_register, m_data_bus_in);
+    } else {
+      write_control_bus_pin(ControlBusPin::MREQ, false);
+      write_control_bus_pin(ControlBusPin::RD, false);
     }
 
   } break;
@@ -173,20 +170,3 @@ auto CPU::handle_set_8_bit_register_direct(bool clock_active) -> bool {
 auto CPU::handle_memory_read(bool clock_active) -> bool { return true; }
 
 auto CPU::handle_memory_write(bool clock_active) -> bool { return true; }
-
-auto CPU::handle_alu_add(bool clock_active) -> bool {
-  if (!clock_active) {
-    auto source_register = static_cast<Register_8>(m_current_operation->source);
-    auto dest_register = static_cast<Register_8>(m_current_operation->dest);
-    auto dest_value = get_register(dest_register);
-    auto source_value = get_register(source_register);
-
-    auto result = dest_value + source_value;
-    set_register(dest_register, result);
-
-    set_register(Register_16::PC, get_register(Register_16::PC) + 1);
-    return true;
-  }
-
-  return false;
-};
