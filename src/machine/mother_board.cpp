@@ -9,6 +9,7 @@ MotherBoard::MotherBoard(const unsigned int frequency) {
 
 void MotherBoard::reset() {
   m_control_bus = 0;
+  m_address_bus = 0;
   m_last_time = std::chrono::high_resolution_clock::now();
 
   for (auto *component : m_components) {
