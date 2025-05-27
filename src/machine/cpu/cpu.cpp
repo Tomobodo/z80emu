@@ -117,7 +117,7 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
       write_control_bus_pin(ControlBusPin::MREQ, false);
       write_control_bus_pin(ControlBusPin::RD, false);
 
-      if (m_instruction_executor.get()) {
+      if (!m_halted && m_instruction_executor.get()) {
         m_instruction_executor->execute(m_current_opcode, this);
       }
     }

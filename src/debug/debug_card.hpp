@@ -84,6 +84,8 @@ private:
   bool m_step;
   bool m_half_step;
 
+  bool m_powered_off;
+
   bool m_clock_plot_data[PLOT_DATA_SIZE];
   uint16_t m_control_bus_plot_data[PLOT_DATA_SIZE];
   unsigned long m_plot_data_offset;

@@ -48,6 +48,12 @@ float get_control_bus_plot_value(void *data_in, int index) {
 }
 
 void DebugCard::update(double delta_time) {
+  if (m_powered_off) {
+    deinit();
+    m_mother_board->power_off();
+    return;
+  }
+
   if (!m_initialized)
     return;
 
@@ -347,8 +353,7 @@ void DebugCard::draw_mother_board_section() {
 
     ImGui::PushStyleColor(ImGuiCol_Button, RED_LED_ON);
     if (ImGui::Button("Power")) {
-      deinit();
-      m_mother_board->power_off();
+      m_powered_off = true;
     }
     ImGui::PopStyleColor();
   }
