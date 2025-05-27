@@ -1,10 +1,10 @@
-#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <print>
+#include <span>
 
 #include "debug/debug_card.hpp"
 
@@ -21,12 +21,14 @@ constexpr uint16_t RAM_SIZE = 0xFFFF;
 constexpr unsigned int FREQ = 4;
 
 auto main(int argc, char *argv[]) -> int {
-  if (argc < 2) {
+  std::span<char *> args(argv, argc);
+
+  if (args.size() < 2) {
     std::println(std::cerr, "No program provided.");
     return EXIT_FAILURE;
   }
 
-  fs::path program_path = argv[1];
+  fs::path program_path = args[1];
 
   if (!fs::exists(program_path)) {
     std::println(std::cerr, "Binary {} not found", program_path.string());
@@ -46,8 +48,8 @@ auto main(int argc, char *argv[]) -> int {
   std::streamsize program_size = file.tellg();
   file.seekg(0, std::ios::beg);
 
-  uint8_t *program = new uint8_t[program_size];
-  file.read((char *)program, program_size);
+  std::vector<uint8_t> program(program_size);
+  file.read(std::bit_cast<char *>(program.data()), program_size);
   file.close();
 
   Memory memory;
@@ -56,9 +58,9 @@ auto main(int argc, char *argv[]) -> int {
   DebugCard debugger(z80, memory);
 
   // flash memory
-  memory.load_bytes(0x0000, program, program_size);
+  memory.load_bytes(0x0000, program.data(), program_size);
 
-  delete[] program;
+  program.clear();
 
   MotherBoard mother_board(FREQ);
   mother_board.add_component(z80);

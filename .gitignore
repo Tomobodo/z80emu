@@ -2,6 +2,7 @@
 .ccls-cache/
 build/
 libs/
+.vscode/
 CMakeUserPresets.json
 compile_commands.json
 compile_commands.json/
