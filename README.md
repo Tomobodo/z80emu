@@ -10,49 +10,46 @@ git clone git@github.com:Tomobodo/z80emu.git
 
 ## Building
 
-You'll need conan and cmake to build the project.
-I wanted to try using a dependencies manager instead of just using submodules
-but it does nothing to make pulling and building dependencies easier so might
-revert back to just using git submodules at some point.
+The project now uses CMake FetchContent to automatically download and build dependencies.
+This simplifies the build process significantly compared to the previous Conan setup.
 
-It has been developped and testes with llvm_clang on windows.
+It has been developed and tested with MSVC/Clang on Windows.
 
 Not tested on other platforms or compilers.
 
 ### Requirements
 
-- cmake > 3.30
-- clang > 18.0
-- conan > 2.9
+- cmake > 3.25
+- A C++23 compatible compiler (MSVC 2022, Clang 15+, or GCC 12+)
+- Git (for FetchContent to download dependencies)
 
 ### Build steps
 
-1. Pull dependencies
+1. Configure the project
 
-Be sure you have set up conan properly and have profiles defined.
-
-If you're new to conan you can generate initial profile using
+CMake will automatically download SDL2 and ImGui using FetchContent:
 
 ```shell
-conan profile detect --force
+cmake -B build
 ```
 
-It will generate your default profile here : ```~/.conan2/profiles/default```.
-Check it and edit it to fit your actual building configuration if needed.
+2. Build the project
 
 ```shell
-conan install . --build=missing --profile=name_of_your_profile # do not set --profile to use your default one
-```
-
-2. Cmake build
-
-```shell
-cmake --preset conan-debug # use conan-release for release
-cmake --build --preset conan-debug
+cmake --build build
 ```
 
 3. Running
 
 ```shell
-./build/Debug/z80emu path/to/binary
+./build/Debug/z80emu.exe path/to/binary
 ```
+
+### Dependencies
+
+The following dependencies are automatically managed by CMake FetchContent:
+
+- **SDL2** (v2.28.5): Cross-platform multimedia library
+- **ImGui** (v1.91.5): Immediate mode GUI library for the debug interface
+
+No manual dependency installation is required.
