@@ -27,7 +27,7 @@ Not tested on other platforms or compilers.
 
 1. Configure the project
 
-CMake will automatically download SDL2 and ImGui using FetchContent:
+CMake will automatically download SDL3 and ImGui using FetchContent:
 
 ```shell
 cmake -B build
@@ -49,7 +49,7 @@ cmake --build build
 
 The following dependencies are automatically managed by CMake FetchContent:
 
-- **SDL2** (v2.28.5): Cross-platform multimedia library
+- **SDL3** (v2.28.5): Cross-platform multimedia library
 - **ImGui** (v1.91.5): Immediate mode GUI library for the debug interface
 
 No manual dependency installation is required.

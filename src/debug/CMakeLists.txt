@@ -18,12 +18,12 @@ target_include_directories(
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_SOURCE_DIR}/libs
   ${imgui_SOURCE_DIR}
-  ${SDL2_SOURCE_DIR}/include
+  ${SDL3_SOURCE_DIR}/include/SDL3
 )
 
 target_link_libraries(
   debug_card PUBLIC
-  SDL2::SDL2
+  SDL3::SDL3
 )
 
 target_link_libraries(

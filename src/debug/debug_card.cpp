@@ -1,4 +1,5 @@
 #include "debug_card.hpp"
+#include "SDL_render.h"
 #include "imgui.h"
 #include "machine/control_bus.hpp"
 #include "machine/cpu/registers.hpp"
@@ -9,8 +10,8 @@
 #include <iostream>
 #include <print>
 
-#include <imgui/imgui_impl_sdl2.h>
-#include <imgui/imgui_impl_sdlrenderer2.h>
+#include <imgui/imgui_impl_sdl3.h>
+#include <imgui/imgui_impl_sdlrenderer3.h>
 
 #include <SDL.h>
 #include <SDL_video.h>
@@ -70,8 +71,8 @@ void DebugCard::update(double delta_time) {
   bool show_demo_window = true;
 
   while (SDL_PollEvent(&m_window_events) != 0) {
-    ImGui_ImplSDL2_ProcessEvent(&m_window_events);
-    if (m_window_events.type == SDL_QUIT) {
+    ImGui_ImplSDL3_ProcessEvent(&m_window_events);
+    if (m_window_events.type == SDL_EVENT_QUIT) {
       deinit();
       return;
     }
@@ -79,19 +80,19 @@ void DebugCard::update(double delta_time) {
 
   SDL_GetWindowSize(m_window, &m_win_width, &m_win_height);
 
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
+  ImGui_ImplSDLRenderer3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
   draw_ui();
 
   ImGui::Render();
-  SDL_RenderSetScale(m_renderer, imgui_io.DisplayFramebufferScale.x,
+  SDL_SetRenderScale(m_renderer, imgui_io.DisplayFramebufferScale.x,
                      imgui_io.DisplayFramebufferScale.y);
   SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, UINT8_MAX);
   SDL_RenderClear(m_renderer);
 
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
+  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_renderer);
 
   SDL_RenderPresent(m_renderer);
 }
@@ -136,12 +137,11 @@ void DebugCard::init_rendering() {
                  SDL_GetError());
   }
 
-  auto window_flags = static_cast<SDL_WindowFlags>(SDL_WINDOW_RESIZABLE |
-                                                   SDL_WINDOW_ALLOW_HIGHDPI);
+  auto window_flags = static_cast<SDL_WindowFlags>(
+      SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
-  m_window = SDL_CreateWindow("CPU Debug", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
-                              WINDOW_HEIGHT, window_flags);
+  m_window =
+      SDL_CreateWindow("CPU Debug", WINDOW_WIDTH, WINDOW_HEIGHT, window_flags);
 
   if (m_window == nullptr) {
     std::println(std::cerr, "Error: Could not init debugger window : {}",
@@ -149,8 +149,7 @@ void DebugCard::init_rendering() {
     return;
   }
 
-  m_renderer = SDL_CreateRenderer(
-      m_window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+  m_renderer = SDL_CreateRenderer(m_window, nullptr);
   if (!m_renderer) {
     std::println(std::cerr, "Error: SDL could not initilize a renderer : {}",
                  SDL_GetError());
@@ -163,16 +162,16 @@ void DebugCard::init_rendering() {
 
   ImGui::StyleColorsDark();
 
-  ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
-  ImGui_ImplSDLRenderer2_Init(m_renderer);
+  ImGui_ImplSDL3_InitForSDLRenderer(m_window, m_renderer);
+  ImGui_ImplSDLRenderer3_Init(m_renderer);
 }
 
 void DebugCard::deinit() {
   if (!m_initialized)
     return;
 
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  ImGui_ImplSDLRenderer3_Shutdown();
+  ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext(m_imgui_context);
 
   SDL_DestroyRenderer(m_renderer);
