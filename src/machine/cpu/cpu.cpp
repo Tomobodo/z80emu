@@ -23,6 +23,7 @@ CPU::CPU() {
 void CPU::reset() {
   m_time_cycle = 0;
   m_waiting = false;
+  set_halted(false);
 
   // z80-documented : Power on defaults
   std::ranges::fill(m_registers_memory, REGISTERS_VALUE_ON_RESET);
@@ -64,18 +65,18 @@ void CPU::clock(bool clock_active) {
 
   try {
     bool operation_finished =
-	(this->*m_operation_handlers.at(operation_index))(clock_active);
+        (this->*m_operation_handlers.at(operation_index))(clock_active);
 
     if (!clock_active) {
       if (operation_finished) {
-	m_operation_queue.dequeue();
-	m_time_cycle = 0;
+        m_operation_queue.dequeue();
+        m_time_cycle = 0;
 
-	if (!m_operation_queue.empty()) {
-	  m_current_operation = &m_operation_queue.head();
-	}
+        if (!m_operation_queue.empty()) {
+          m_current_operation = &m_operation_queue.head();
+        }
       } else {
-	m_time_cycle++;
+        m_time_cycle++;
       }
     }
   } catch (std::exception &e) {
@@ -117,7 +118,7 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
       write_control_bus_pin(ControlBusPin::RD, false);
 
       if (m_instruction_executor.get()) {
-	m_instruction_executor->execute(m_current_opcode, this);
+        m_instruction_executor->execute(m_current_opcode, this);
       }
     }
 
@@ -125,7 +126,9 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
 
   default:
     if (!clock_active) {
-      set_register(Register_16::PC, program_counter + 1);
+      if (!m_halted) {
+        set_register(Register_16::PC, program_counter + 1);
+      }
 
       return true;
     }

@@ -30,11 +30,20 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
 
   if ((opcode & OP_TYPE_MASK) == (uint8_t)OpTypes::ARITHMETIC) {
     const uint8_t operation = opcode & OP_ARITHMETIC_MASK;
+
     switch (operation) {
     case (uint8_t)OpArithmetic::ADD: {
       const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
       const uint8_t result =
           cpu->get_register(Register_8::A) + cpu->get_register(source_register);
+      cpu->set_register(Register_8::A, result);
+      return;
+    } break;
+
+    case (uint8_t)OpArithmetic::SUB: {
+      const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
+      const uint8_t result =
+          cpu->get_register(Register_8::A) - cpu->get_register(source_register);
       cpu->set_register(Register_8::A, result);
       return;
     } break;
@@ -57,6 +66,10 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
         {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
          .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
          .dest = static_cast<uint16_t>(Register_8::B)});
+    break;
+
+  case 0x76: /* HALT */
+    cpu->set_halted(true);
     break;
   }
 }

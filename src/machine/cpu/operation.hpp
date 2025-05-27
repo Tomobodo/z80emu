@@ -7,7 +7,7 @@ enum class OperationType : std::uint8_t {
   SET_8_BIT_REGISTER_DIRECT,
   MEMORY_RW,
   IO_RW,
-  INTERUPT_ACK,
+  INTERUPT_ACK
 };
 
 struct Operation {

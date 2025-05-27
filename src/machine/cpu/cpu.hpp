@@ -51,6 +51,15 @@ public:
 
   void push_operation(Operation operation);
 
+  void set_halted(bool halted) {
+    m_halted = halted;
+    write_control_bus_pin(ControlBusPin::HALT, halted);
+  }
+
+  [[nodiscard]] auto is_halted() const -> bool { return m_halted; }
+
+  [[nodiscard]] auto is_waiting() const -> bool { return m_waiting; }
+
 private:
   // ----- METHODS -----
 
@@ -73,6 +82,7 @@ private:
 
   // ----- FIELDS -----
   bool m_waiting{};
+  bool m_halted{};
 
   uint8_t m_time_cycle{};
 
