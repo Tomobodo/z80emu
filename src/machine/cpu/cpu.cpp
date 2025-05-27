@@ -9,7 +9,8 @@
 #include <iostream>
 
 CPU::CPU() {
-  m_operation_handlers.resize(30);
+  const int operation_handlers_count = 30;
+  m_operation_handlers.resize(operation_handlers_count);
 
   m_operation_handlers[(size_t)OperationType::OPCODE_FETCH] =
       &CPU::handle_opcode_fetch;

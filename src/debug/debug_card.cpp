@@ -15,10 +15,8 @@
 #include <SDL.h>
 #include <SDL_video.h>
 
-DebugCard::DebugCard(CPU &cpu, Memory &memory) : m_cpu(cpu), m_memory(memory) {
-  m_window = nullptr;
-  m_initialized = false;
-}
+DebugCard::DebugCard(CPU &cpu, Memory &memory)
+    : m_cpu(&cpu), m_memory(&memory) {}
 
 DebugCard::~DebugCard() { deinit(); }
 
@@ -36,14 +34,14 @@ void DebugCard::clock(bool clock_active) {
 
 struct get_control_bus_plot_value_params {
   int bit;
-  uint16_t *data;
+  std::array<uint16_t, DebugCard::PLOT_DATA_SIZE> *data;
 };
 
-float get_control_bus_plot_value(void *data_in, int index) {
+auto get_control_bus_plot_value(void *data_in, int index) -> float {
   auto *const params =
       static_cast<get_control_bus_plot_value_params *>(data_in);
-  uint16_t value = params->data[index];
-  const float plot_value = (value >> params->bit) & 1;
+  uint16_t value = params->data->at(index);
+  const auto plot_value = static_cast<float>(1 & (value >> params->bit));
   return 1.F - plot_value;
 }
 
@@ -59,9 +57,9 @@ void DebugCard::update(double delta_time) {
 
   // update data
   if (!m_paused) {
-    unsigned int data_index = m_plot_data_offset % PLOT_DATA_SIZE;
-    m_clock_plot_data[data_index] = m_clock_active;
-    m_control_bus_plot_data[data_index] = m_mother_board->get_control_bus();
+    int data_index = m_plot_data_offset % PLOT_DATA_SIZE;
+    m_clock_plot_data.at(data_index) = m_clock_active;
+    m_control_bus_plot_data.at(data_index) = m_mother_board->get_control_bus();
 
     m_plot_data_offset++;
   }
@@ -90,7 +88,7 @@ void DebugCard::update(double delta_time) {
   ImGui::Render();
   SDL_RenderSetScale(m_renderer, imgui_io.DisplayFramebufferScale.x,
                      imgui_io.DisplayFramebufferScale.y);
-  SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+  SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, UINT8_MAX);
   SDL_RenderClear(m_renderer);
 
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), m_renderer);
@@ -98,8 +96,10 @@ void DebugCard::update(double delta_time) {
   SDL_RenderPresent(m_renderer);
 }
 
-float get_clock_plot_value(void *data_in, int index) {
-  return static_cast<bool *>(data_in)[index] ? 1.0 : 0.0;
+auto get_clock_plot_value(void *data_in, int index) -> float {
+  auto *data =
+      static_cast<std::array<bool, DebugCard::PLOT_DATA_SIZE> *>(data_in);
+  return data->at(index) ? 1.0 : 0.0;
 }
 
 void DebugCard::reset() {
@@ -127,9 +127,8 @@ void DebugCard::init_rendering() {
   // plot data
   m_plot_data_offset = 0;
 
-  std::fill(m_clock_plot_data, m_clock_plot_data + PLOT_DATA_SIZE, false);
-  std::fill(m_control_bus_plot_data, m_control_bus_plot_data + PLOT_DATA_SIZE,
-            0);
+  m_clock_plot_data.fill(false);
+  m_control_bus_plot_data.fill(0);
 
   // SDL / Imgui
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
@@ -137,10 +136,12 @@ void DebugCard::init_rendering() {
                  SDL_GetError());
   }
 
-  SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(
-      SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+  auto window_flags = static_cast<SDL_WindowFlags>(SDL_WINDOW_RESIZABLE |
+                                                   SDL_WINDOW_ALLOW_HIGHDPI);
+
   m_window = SDL_CreateWindow("CPU Debug", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, 1600, 720, window_flags);
+                              SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
+                              WINDOW_HEIGHT, window_flags);
 
   if (m_window == nullptr) {
     std::println(std::cerr, "Error: Could not init debugger window : {}",
@@ -218,15 +219,18 @@ void DebugCard::draw_ui() {
 
 void DebugCard::draw_clock_section() {
   if (ImGui::CollapsingHeader("Clock", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::PushItemWidth(130);
+    const int ITEM_WIDTH = 130;
+    ImGui::PushItemWidth(ITEM_WIDTH);
 
-    if (ImGui::InputInt("Frequency", &m_mother_board_frequency)) {
+    if (ImGui::InputScalar("Frequency", ImGuiDataType_U64,
+                           &m_mother_board_frequency, nullptr, nullptr,
+                           "%llu")) {
       if (m_mother_board_frequency < 1) {
         m_mother_board_frequency = 1;
       }
 
-      if (m_mother_board_frequency > 4'000'000) {
-        m_mother_board_frequency = 4'000'000;
+      if (m_mother_board_frequency > MAX_MOTHER_BOARD_FREQUENCY) {
+        m_mother_board_frequency = MAX_MOTHER_BOARD_FREQUENCY;
       }
 
       m_mother_board->set_clock_frequency(m_mother_board_frequency);
@@ -254,16 +258,17 @@ void DebugCard::draw_clock_section() {
 
     ImGui::PopItemWidth();
 
-    ImGui::PlotLines("Signal", &get_clock_plot_value, m_clock_plot_data,
-                     PLOT_DATA_SIZE, m_plot_data_offset, 0, 0, 1);
+    ImGui::PlotLines("Signal", &get_clock_plot_value, &m_clock_plot_data,
+                     PLOT_DATA_SIZE, m_plot_data_offset, nullptr, 0, 1);
   }
 }
 
 void DebugCard::draw_control_bus_section() {
   if (ImGui::CollapsingHeader("Control Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
-    for (int bit = 0; bit < 13; bit++) {
-      const std::string pin_name = CONTROL_BUS_PIN_NAMES[bit];
-      get_control_bus_plot_value_params params = {bit, m_control_bus_plot_data};
+    for (int bit = 0; bit < CONTROL_BUS_BITS; bit++) {
+      const std::string pin_name = CONTROL_BUS_PIN_NAMES.at(bit);
+      get_control_bus_plot_value_params params = {
+          .bit = bit, .data = &m_control_bus_plot_data};
       ImGui::PlotLines(std::format("##{}", pin_name).c_str(),
                        &get_control_bus_plot_value, &params, PLOT_DATA_SIZE,
                        m_plot_data_offset, nullptr, 0, 1);
@@ -277,9 +282,9 @@ void DebugCard::draw_control_bus_section() {
       }
 
       ImGui::SameLine();
-      const char *button_name = CONTROL_BUS_PIN_NAMES[bit];
+      const char *button_name = CONTROL_BUS_PIN_NAMES.at(bit);
 
-      if (CONTROL_BUS_PINS[bit] == ControlBusPin::RESET) {
+      if (CONTROL_BUS_PINS.at(bit) == ControlBusPin::RESET) {
         ImGui::Button(button_name);
 
         if (ImGui::IsItemActive()) {
@@ -300,47 +305,52 @@ void DebugCard::draw_control_bus_section() {
 
 void DebugCard::draw_data_bus_section() {
   if (ImGui::CollapsingHeader("Data Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
-    for (int bit = 7; bit >= 0; bit--) {
+    const int last_data_bus_bit = 7;
+    for (int bit = last_data_bus_bit; bit >= 0; bit--) {
       bool on = get_bit(m_data_bus_in, bit);
 
       ImVec4 led_color = on ? GREEN_LED_ON : GREEN_LED_OFF;
       ImGui::PushStyleColor(ImGuiCol_Button, led_color);
 
-      if (bit < 7)
+      if (bit < last_data_bus_bit)
         ImGui::SameLine();
 
-      ImGui::Button(std::format("##data_bit{}", bit).c_str(), ImVec2(16, 16));
+      ImGui::Button(std::format("##data_bit{}", bit).c_str(),
+                    ImVec2(LED_SIZE, LED_SIZE));
       ImGui::PopStyleColor();
     }
 
-    ImGui::Text("Hex: 0x%02X", m_data_bus_in);
+    ImGui::TextUnformatted(std::format("Hex: 0x{:02X}", m_data_bus_in).c_str());
     ImGui::SameLine();
-    ImGui::Text("Dec: %d", m_data_bus_in);
+    ImGui::TextUnformatted(std::format("Dec: {}", m_data_bus_in).c_str());
     ImGui::SameLine();
-    ImGui::Text("Char: %c", m_data_bus_in);
+    ImGui::TextUnformatted(
+        std::format("Char: {:c}", static_cast<char>(m_data_bus_in)).c_str());
   }
 }
 
 void DebugCard::draw_address_bus_section() {
   if (ImGui::CollapsingHeader("Address Bus", ImGuiTreeNodeFlags_DefaultOpen)) {
-    for (int bit = 15; bit >= 0; bit--) {
+    const int last_address_bus_bit = 15;
+    for (int bit = last_address_bus_bit; bit >= 0; bit--) {
       bool on = get_bit(m_address_bus_in, bit);
 
       ImVec4 led_color = on ? GREEN_LED_ON : GREEN_LED_OFF;
       ImGui::PushStyleColor(ImGuiCol_Button, led_color);
 
-      if (bit < 15)
+      if (bit < last_address_bus_bit)
         ImGui::SameLine();
 
       ImGui::Button(std::format("##address_bit{}", bit).c_str(),
-                    ImVec2(16, 16));
+                    ImVec2(LED_SIZE, LED_SIZE));
       ImGui::PopStyleColor();
     }
   }
 
-  ImGui::Text("Hex: 0x%02X", m_address_bus_in);
+  ImGui::TextUnformatted(
+      std::format("Hex: 0x{:02X}", m_address_bus_in).c_str());
   ImGui::SameLine();
-  ImGui::Text("Dec: %d", m_address_bus_in);
+  ImGui::TextUnformatted(std::format("Dec: {}", m_address_bus_in).c_str());
 }
 
 void DebugCard::draw_mother_board_section() {
@@ -364,17 +374,19 @@ void DebugCard::draw_8b_register(Register_8 reg) {
 
   ImGui::Selectable(std::format("{}", register_8_to_name(reg)).c_str(), true);
 
-  const auto value = m_cpu.get_register(reg);
+  const auto value = m_cpu->get_register(reg);
 
-  ImGui::Text("H: 0x%02X", value);
+  ImGui::TextUnformatted(std::format("H: 0x{:02X}", value).c_str());
   ImGui::SameLine();
-  ImGui::Text("D: %d", value);
+  ImGui::TextUnformatted(std::format("D: {}", value).c_str());
 
   std::string binary = std::format("{:08b}", value);
   binary.insert(4, " ");
-  ImGui::Text("B: %s", binary.c_str());
+  binary = "B: " + binary;
+  ImGui::TextUnformatted(binary.c_str());
   ImGui::SameLine();
-  ImGui::Text("C: %c", value);
+  ImGui::TextUnformatted(
+      std::format("C: {:c}", static_cast<char>(value)).c_str());
 }
 
 void DebugCard::draw_16b_register(Register_16 reg) {
@@ -382,19 +394,22 @@ void DebugCard::draw_16b_register(Register_16 reg) {
 
   ImGui::Selectable(std::format("{}", register_16_to_name(reg)).c_str(), true);
 
-  const auto value = m_cpu.get_register(reg);
+  const auto value = m_cpu->get_register(reg);
 
-  ImGui::Text("H: 0x%04X", value);
+  ImGui::TextUnformatted(std::format("H: 0x{:04X}", value).c_str());
   ImGui::SameLine();
-  ImGui::Text("D: %d", value);
+  ImGui::TextUnformatted(std::format("D: {}", value).c_str());
 
   std::string binary = std::format("{:016b}", value).c_str();
-  binary.insert(4, " ");
-  binary.insert(9, " ");
-  binary.insert(14, " ");
-  ImGui::Text("B: %s", binary.c_str());
+  const int insert_pos_1 = 4, insert_pos_2 = 9, insert_pos_3 = 14;
+  binary.insert(insert_pos_1, " ");
+  binary.insert(insert_pos_2, " ");
+  binary.insert(insert_pos_3, " ");
+  binary = "B: " + binary;
+  ImGui::TextUnformatted(binary.c_str());
   ImGui::SameLine();
-  ImGui::Text("C: %c", value);
+  ImGui::TextUnformatted(
+      std::format("C: {:c}", static_cast<char>(value)).c_str());
 }
 
 void DebugCard::draw_cpu_section() {
@@ -404,8 +419,8 @@ void DebugCard::draw_cpu_section() {
     ImGui::BeginTable("8 bit", 4,
                       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
-    for (int i = 0; i < REGISTER_8_COUNT; i++) {
-      draw_8b_register(REGISTER_8_DEBUG_ORDER[i]);
+    for (auto i : REGISTER_8_DEBUG_ORDER) {
+      draw_8b_register(i);
     }
 
     ImGui::EndTable();
@@ -417,8 +432,8 @@ void DebugCard::draw_cpu_section() {
     ImGui::BeginTable("16 bit", 2,
                       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
-    for (int i = 0; i < REGISTER_16_COUNT; i++) {
-      draw_16b_register(REGISTER_16_DEBUG_ORDER[i]);
+    for (auto i : REGISTER_16_DEBUG_ORDER) {
+      draw_16b_register(i);
     }
 
     ImGui::EndTable();
@@ -435,19 +450,19 @@ void DebugCard::draw_memory_section() {
                       ImVec2(0, (1 + ITEMS_HEIGHT) * MEMORY_READ_SIZE), true,
                       ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
-    const int scroll_y = ImGui::GetScrollY();
+    const int scroll_y = static_cast<int>(ImGui::GetScrollY());
 
     uint16_t start_index = std::clamp(static_cast<int>(scroll_y / ITEMS_HEIGHT),
                                       0, ITEMS_COUNT - MEMORY_READ_SIZE);
 
     const uint16_t end_index = start_index + MEMORY_READ_SIZE;
-    const uint8_t *memory_address = m_memory.get_address(start_index);
 
     ImGui::SetCursorPosY(ITEMS_HEIGHT);
 
     ImGui::Dummy(ImVec2(0, (ITEMS_COUNT + 1) * ITEMS_HEIGHT));
 
-    ImGui::SetCursorPosY(start_index * ITEMS_HEIGHT + scroll_y % ITEMS_HEIGHT);
+    ImGui::SetCursorPosY(static_cast<float>(start_index * ITEMS_HEIGHT +
+                                            scroll_y % ITEMS_HEIGHT));
 
     ImGui::BeginTable("Memory", 2,
                       ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
@@ -460,7 +475,7 @@ void DebugCard::draw_memory_section() {
 
     for (int i = 0; i <= MEMORY_READ_SIZE; i++) {
       const uint16_t address = start_index + i;
-      const uint8_t value = *(memory_address + i);
+      const uint8_t value = m_memory->read_address(address);
 
       ImU32 cell_bg IM_COL32(0, 0, 0, 0);
 
@@ -469,12 +484,12 @@ void DebugCard::draw_memory_section() {
       }
 
       ImGui::TableNextColumn();
-      ImGui::Text("0x%04X", address);
+      ImGui::TextUnformatted(std::format("0x{:04X}", address).c_str());
 
       ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg);
 
       ImGui::TableNextColumn();
-      ImGui::Text("0x%02X", value);
+      ImGui::TextUnformatted(std::format("0x{:02X}", value).c_str());
 
       ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg);
     }

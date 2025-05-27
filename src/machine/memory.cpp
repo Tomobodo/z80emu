@@ -13,12 +13,8 @@ auto Memory::read_address(uint16_t address) -> uint8_t {
   return m_bytes.at(address);
 }
 
-auto Memory::get_address(uint16_t address) -> uint8_t * {
-  return &m_bytes.at(address);
-}
-
 void Memory::load_bytes(uint16_t address, const uint8_t *bytes,
-			uint16_t bytes_number) {
+                        uint16_t bytes_number) {
   memcpy(&m_bytes.at(address), bytes, bytes_number);
 }
 

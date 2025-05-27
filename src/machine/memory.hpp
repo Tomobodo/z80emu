@@ -13,8 +13,6 @@ public:
 
   auto read_address(uint16_t address) -> uint8_t;
 
-  auto get_address(uint16_t address) -> uint8_t *;
-
   void load_bytes(uint16_t address, const uint8_t *bytes,
                   uint16_t bytes_number);
 
