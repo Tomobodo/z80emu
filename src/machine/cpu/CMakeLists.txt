@@ -1,6 +1,6 @@
 target_sources(
-  ${PROJECT_NAME} PRIVATE
+  machine_lib PRIVATE
   cpu.cpp
   registers.cpp
-  z80_executor.cpp
+  z80_instruction_executor.cpp
 )

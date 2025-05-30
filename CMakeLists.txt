@@ -6,6 +6,9 @@ project(
   VERSION 0.1.0
 )
 
+# Enable testing
+enable_testing()
+
 # Include FetchContent module
 include(FetchContent)
 
@@ -23,8 +26,15 @@ FetchContent_Declare(
   GIT_TAG v1.91.9b
 )
 
+# Fetch doctest
+FetchContent_Declare(
+  doctest
+  GIT_REPOSITORY https://github.com/doctest/doctest.git
+  GIT_TAG v2.4.11
+)
+
 # Make dependencies available
-FetchContent_MakeAvailable(SDL3 imgui)
+FetchContent_MakeAvailable(SDL3 imgui doctest)
 
 # Copy ImGui backend files to libs directory
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/libs/imgui)
@@ -69,3 +79,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 		$<TARGET_FILE:SDL3::SDL3>
 		$<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
+
+# Add tests subdirectory
+add_subdirectory(tests)

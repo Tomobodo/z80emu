@@ -1,5 +1,5 @@
 #include "debug_card.hpp"
-#include "SDL_render.h"
+#include "SDL3/SDL_render.h"
 #include "imgui.h"
 #include "machine/control_bus.hpp"
 #include "machine/cpu/registers.hpp"
@@ -13,8 +13,8 @@
 #include <imgui/imgui_impl_sdl3.h>
 #include <imgui/imgui_impl_sdlrenderer3.h>
 
-#include <SDL.h>
-#include <SDL_video.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_video.h>
 
 DebugCard::DebugCard(CPU &cpu, Memory &memory)
     : m_cpu(&cpu), m_memory(&memory) {}
@@ -132,7 +132,7 @@ void DebugCard::init_rendering() {
   m_control_bus_plot_data.fill(0);
 
   // SDL / Imgui
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
     std::println(std::cerr, "Error: SDL could not initialize : {}",
                  SDL_GetError());
   }

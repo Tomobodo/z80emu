@@ -7,7 +7,7 @@ class InstructionExecutor {
 public:
   InstructionExecutor() = default;
   InstructionExecutor(const InstructionExecutor &) = default;
-  InstructionExecutor(InstructionExecutor &&) = delete;
+  InstructionExecutor(InstructionExecutor &&) = default;
   auto operator=(const InstructionExecutor &)
       -> InstructionExecutor & = default;
   auto operator=(InstructionExecutor &&) -> InstructionExecutor & = delete;

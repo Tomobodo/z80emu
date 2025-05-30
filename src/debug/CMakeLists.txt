@@ -18,7 +18,7 @@ target_include_directories(
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_SOURCE_DIR}/libs
   ${imgui_SOURCE_DIR}
-  ${SDL3_SOURCE_DIR}/include/SDL3
+  ${SDL3_SOURCE_DIR}/include
 )
 
 target_link_libraries(

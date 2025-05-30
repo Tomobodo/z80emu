@@ -1,25 +1,12 @@
 #include "cpu.hpp"
 #include "machine/control_bus.hpp"
+#include "machine/cpu/operation.hpp"
 #include "registers.hpp"
 
 #include <algorithm>
 #include <cstdint>
-#include <exception>
-#include <format>
-#include <iostream>
 
-CPU::CPU() {
-  const int operation_handlers_count = 30;
-  m_operation_handlers.resize(operation_handlers_count);
-
-  m_operation_handlers[(size_t)OperationType::OPCODE_FETCH] =
-      &CPU::handle_opcode_fetch;
-
-  m_operation_handlers[(size_t)OperationType::SET_8_BIT_REGISTER_DIRECT] =
-      &CPU::handle_set_8_bit_register_direct;
-
-  reset();
-}
+CPU::CPU() { reset(); }
 
 void CPU::reset() {
   m_time_cycle = 0;
@@ -62,26 +49,30 @@ void CPU::clock(bool clock_active) {
     m_current_operation = &m_operation_queue.head();
   }
 
-  const auto operation_index = static_cast<uint8_t>(m_current_operation->type);
+  bool operation_finished = false;
 
-  try {
-    bool operation_finished =
-        (this->*m_operation_handlers.at(operation_index))(clock_active);
+  switch (m_current_operation->type) {
+  case OperationType::OPCODE_FETCH:
+    operation_finished = handle_opcode_fetch(clock_active);
+    break;
+  case OperationType::SET_8_BIT_REGISTER_DIRECT:
+    operation_finished = handle_set_8_bit_register_direct(clock_active);
+    break;
+  default:
+    break;
+  }
 
-    if (!clock_active) {
-      if (operation_finished) {
-        m_operation_queue.dequeue();
-        m_time_cycle = 0;
+  if (!clock_active) {
+    if (operation_finished) {
+      m_operation_queue.dequeue();
+      m_time_cycle = 0;
 
-        if (!m_operation_queue.empty()) {
-          m_current_operation = &m_operation_queue.head();
-        }
-      } else {
-        m_time_cycle++;
+      if (!m_operation_queue.empty()) {
+        m_current_operation = &m_operation_queue.head();
       }
+    } else {
+      m_time_cycle++;
     }
-  } catch (std::exception &e) {
-    std::print(std::cerr, "Error executing operation : {}\n", e.what());
   }
 }
 
@@ -118,8 +109,8 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
       write_control_bus_pin(ControlBusPin::MREQ, false);
       write_control_bus_pin(ControlBusPin::RD, false);
 
-      if (!m_halted && m_instruction_executor.get()) {
-        m_instruction_executor->execute(m_current_opcode, this);
+      if (!m_halted) {
+        m_instruction_executor.execute(m_current_opcode, this);
       }
     }
 

@@ -1,4 +1,4 @@
-Checks: "-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*"
+Checks: "-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*,-cppcoreguidelines-avoid-do-while"
 WarningsAsErrors: "*"
 HeaderFilterRegex: ".*"
 CheckOptions:

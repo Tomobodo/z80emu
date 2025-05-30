@@ -5,8 +5,8 @@
 #include "machine/cpu/registers.hpp"
 #include "machine/memory.hpp"
 
-#include <SDL_events.h>
-#include <SDL_render.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_render.h>
 #include <imgui.h>
 
 class DebugCard : public Component {

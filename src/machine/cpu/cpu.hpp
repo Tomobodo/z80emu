@@ -2,6 +2,7 @@
 
 #include "../component.hpp"
 #include "machine/cpu/instruction_executor.hpp"
+#include "machine/cpu/z80_instruction_executor.hpp"
 #include "operation.hpp"
 #include "registers.hpp"
 #include "utils/circular_queue.hpp"
@@ -9,7 +10,6 @@
 #include <array>
 #include <climits>
 #include <cstdint>
-#include <memory>
 
 class CPU : public Component {
 public:
@@ -43,10 +43,6 @@ public:
     auto index = static_cast<uint8_t>(reg);
     m_registers_memory.at(index) = value & UINT8_MAX;
     m_registers_memory.at(index + 1) = (value >> CHAR_BIT) & UINT8_MAX;
-  }
-
-  template <typename T> void set_instruction_executor() {
-    m_instruction_executor = std::make_unique<T>();
   }
 
   void push_operation(Operation operation);
@@ -90,8 +86,6 @@ private:
   uint8_t m_interupt_mode{};
   uint8_t m_current_opcode{};
 
-  std::vector<bool (CPU::*)(bool)> m_operation_handlers;
-
   bool m_IFF1{}, m_IFF2{};
 
   CircularQueue<Operation, OPERATION_QUEUE_SIZE> m_operation_queue;
@@ -99,5 +93,5 @@ private:
 
   std::array<uint8_t, REGISTERS_BYTES_COUNT> m_registers_memory{};
 
-  std::unique_ptr<InstructionExecutor> m_instruction_executor;
+  Z80Executor m_instruction_executor;
 };

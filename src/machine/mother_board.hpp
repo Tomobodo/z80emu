@@ -11,9 +11,9 @@ class Component;
 class MotherBoard {
 public:
   MotherBoard(const MotherBoard &) = default;
-  MotherBoard(MotherBoard &&) = delete;
-  MotherBoard &operator=(const MotherBoard &) = default;
-  MotherBoard &operator=(MotherBoard &&) = delete;
+  MotherBoard(MotherBoard &&) = default;
+  auto operator=(const MotherBoard &) -> MotherBoard & = default;
+  auto operator=(MotherBoard &&) -> MotherBoard & = default;
   explicit MotherBoard(unsigned int frequency);
 
   ~MotherBoard() = default;
@@ -30,6 +30,8 @@ public:
 
   void run();
 
+  void clock(bool clock_active);
+
   void set_clock_frequency(unsigned long long frequency);
 
   void power_off();
@@ -38,20 +40,30 @@ public:
     m_clock_paused = clock_paused;
   }
 
-  [[nodiscard]] bool get_emulation_lagging() const {
+  [[nodiscard]] auto get_emulation_lagging() const -> bool {
     return m_emulation_lagging;
   };
 
-  [[nodiscard]] unsigned long long get_frequency() const {
+  [[nodiscard]] auto get_frequency() const -> unsigned long long {
     return m_frequency;
   };
 
-  [[nodiscard]] uint16_t get_control_bus() const { return m_control_bus; }
+  [[nodiscard]] auto get_control_bus() const -> uint16_t {
+    return m_control_bus;
+  }
+
+  template <typename T> auto get_component() -> T * {
+    for (auto component : m_components) {
+      if (auto casted_component = dynamic_cast<T *>(component)) {
+        return casted_component;
+      }
+    }
+
+    return nullptr;
+  }
 
 private:
   void update();
-
-  void clock(bool clock_active);
 
   static constexpr unsigned int MAX_CATCHUP_CYCLES_NUM = 250'000;
 

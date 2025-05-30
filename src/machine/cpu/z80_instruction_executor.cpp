@@ -1,4 +1,4 @@
-#include "z80_executor.hpp"
+#include "z80_instruction_executor.hpp"
 
 #include <cstdint>
 
@@ -66,6 +66,28 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
         {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
          .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
          .dest = static_cast<uint16_t>(Register_8::B)});
+    break;
+
+  case 0x0E: /* LD C, n */
+    cpu->push_operation(
+        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
+         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
+         .dest = static_cast<uint16_t>(Register_8::C)});
+    break;
+
+  case 0x16: /* LD D, n */
+    cpu->push_operation(
+        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
+         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
+         .dest = static_cast<uint16_t>(Register_8::D)});
+
+    break;
+
+  case 0x1E: /* LD E, n */
+    cpu->push_operation(
+        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
+         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
+         .dest = static_cast<uint16_t>(Register_8::E)});
     break;
 
   case 0x76: /* HALT */

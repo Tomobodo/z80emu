@@ -9,7 +9,6 @@
 #include "debug/debug_card.hpp"
 
 #include "machine/cpu/cpu.hpp"
-#include "machine/cpu/z80_executor.hpp"
 #include "machine/memory.hpp"
 #include "machine/mother_board.hpp"
 
@@ -54,7 +53,6 @@ auto main(int argc, char *argv[]) -> int {
 
   Memory memory;
   CPU z80;
-  z80.set_instruction_executor<Z80Executor>();
   DebugCard debugger(z80, memory);
 
   // flash memory
