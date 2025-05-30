@@ -10,12 +10,12 @@ git clone git@github.com:Tomobodo/z80emu.git
 
 ## Building
 
-The project now uses CMake FetchContent to automatically download and build dependencies.
+The project uses CMake FetchContent to automatically download and build dependencies.
 This simplifies the build process significantly compared to the previous Conan setup.
 
-It has been developed and tested with MSVC/Clang on Windows.
+It has been developed and tested with Clang on Windows.
 
-Not tested on other platforms or compilers.
+Not tested on other platforms or compilers yet.
 
 ### Requirements
 
@@ -49,7 +49,8 @@ cmake --build build
 
 The following dependencies are automatically managed by CMake FetchContent:
 
-- **SDL3** (v2.28.5): Cross-platform multimedia library
-- **ImGui** (v1.91.5): Immediate mode GUI library for the debug interface
+- **SDL3** (3.2.14): Cross-platform multimedia library
+- **ImGui** (1.91.9b): Immediate mode GUI library for the debug interface
+- **doctest** (2.4.11): unit testing
 
 No manual dependency installation is required.
