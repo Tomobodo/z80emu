@@ -51,19 +51,17 @@ auto main(int argc, char *argv[]) -> int {
   file.read(std::bit_cast<char *>(program.data()), program_size);
   file.close();
 
-  Memory memory;
-  CPU z80;
-  DebugCard debugger(z80, memory);
-
   // flash memory
-  memory.load_bytes(0x0000, program.data(), program_size);
-
-  program.clear();
 
   MotherBoard mother_board(FREQ);
-  mother_board.add_component(z80);
-  mother_board.add_component(memory);
-  mother_board.add_component(debugger);
+  auto z80 = mother_board.add_component<CPU>();
+
+  auto memory = mother_board.add_component<Memory>();
+  memory->load_bytes(0x0000, program.data(), program_size);
+  program.clear();
+
+  mother_board.add_component<DebugCard>();
+
   mother_board.run();
 
   return EXIT_SUCCESS;

@@ -80,6 +80,14 @@ void CPU::push_operation(Operation operation) {
   m_operation_queue.push(operation);
 }
 
+void CPU::set_halted(bool halted) {
+  if (m_halted != halted && halted) {
+    m_on_halted_callback();
+  }
+  m_halted = halted;
+  write_control_bus_pin(ControlBusPin::HALT, halted);
+}
+
 auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
   uint16_t program_counter = get_register(Register_16::PC);
 

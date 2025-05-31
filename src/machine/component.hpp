@@ -58,13 +58,16 @@ public:
 
   void set_mother_board(MotherBoard *mother_board) {
     m_mother_board = mother_board;
+    on_added();
   }
 
 protected:
-  [[nodiscard]] bool control_bus_pin_changed_to(ControlBusPin pin,
-                                                bool to_value) const;
-  [[nodiscard]] bool read_control_bus_pin(ControlBusPin pin) const;
+  [[nodiscard]] auto control_bus_pin_changed_to(ControlBusPin pin,
+                                                bool to_value) const -> bool;
+  [[nodiscard]] auto read_control_bus_pin(ControlBusPin pin) const -> bool;
   void write_control_bus_pin(ControlBusPin pin, bool value);
+
+  virtual void on_added() {};
 
   ControlBus m_previous_bus_in{};
 

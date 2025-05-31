@@ -16,9 +16,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
 
-DebugCard::DebugCard(CPU &cpu, Memory &memory)
-    : m_cpu(&cpu), m_memory(&memory) {}
-
 DebugCard::~DebugCard() { deinit(); }
 
 void DebugCard::clock(bool clock_active) {
@@ -106,6 +103,11 @@ auto get_clock_plot_value(void *data_in, int index) -> float {
 void DebugCard::reset() {
   deinit();
   init();
+}
+
+void DebugCard::on_added() {
+  m_memory = m_mother_board->get_component<Memory>();
+  m_cpu = m_mother_board->get_component<CPU>();
 }
 
 // ----- PRIVATE ----- //
@@ -272,7 +274,8 @@ void DebugCard::draw_control_bus_section() {
                        &get_control_bus_plot_value, &params, PLOT_DATA_SIZE,
                        m_plot_data_offset, nullptr, 0, 1);
 
-      bool bit_on = (m_control_bus_out_toggle >> bit) & 1;
+      bool bit_on = (m_control_bus_out_toggle >> bit) & 1 ||
+                    get_bit(m_control_bus_in, bit);
 
       if (bit_on) {
         ImGui::PushStyleColor(ImGuiCol_Button, GREEN_LED_ON);

@@ -20,3 +20,5 @@ auto machine_setup(std::string program_path_str) -> MotherBoard;
 
 void machine_half_clock_cycles(MotherBoard &mother_board,
                                unsigned long long half_cycles);
+
+auto run_program(std::string program_path) -> MotherBoard;

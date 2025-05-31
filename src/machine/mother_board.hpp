@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "control_bus.hpp"
@@ -19,11 +20,23 @@ public:
   ~MotherBoard() = default;
 
   template <typename T>
-  void add_component(T &component)
+  auto add_component() -> std::shared_ptr<T>
     requires(std::is_base_of_v<Component, T>)
   {
-    m_components.push_back(&component);
-    component.set_mother_board(this);
+    auto component = std::make_shared<T>();
+    component->set_mother_board(this);
+    m_components.push_back(component);
+    return component;
+  }
+
+  template <typename T> auto get_component() -> std::shared_ptr<T> {
+    for (auto component : m_components) {
+      if (auto casted_component = std::static_pointer_cast<T>(component)) {
+        return casted_component;
+      }
+    }
+
+    return nullptr;
   }
 
   void reset();
@@ -52,16 +65,6 @@ public:
     return m_control_bus;
   }
 
-  template <typename T> auto get_component() -> T * {
-    for (auto component : m_components) {
-      if (auto casted_component = dynamic_cast<T *>(component)) {
-        return casted_component;
-      }
-    }
-
-    return nullptr;
-  }
-
 private:
   void update();
 
@@ -78,7 +81,7 @@ private:
 
   unsigned long long m_frequency{};
 
-  std::vector<Component *> m_components;
+  std::vector<std::shared_ptr<Component>> m_components;
 
   ControlBus m_control_bus{};
   uint16_t m_address_bus{};

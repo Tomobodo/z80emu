@@ -12,7 +12,7 @@ void MotherBoard::reset() {
   m_address_bus = 0;
   m_last_time = std::chrono::high_resolution_clock::now();
 
-  for (auto *component : m_components) {
+  for (auto component : m_components) {
     component->reset();
   }
 }
@@ -61,7 +61,7 @@ void MotherBoard::update() {
 
   const double delta_time =
       static_cast<double>(elapsed.count()) / NANOSECONDS_IN_ONE_SECOND;
-  for (auto *component : m_components) {
+  for (auto component : m_components) {
     component->update(delta_time);
   }
 
@@ -69,7 +69,7 @@ void MotherBoard::update() {
 }
 
 void MotherBoard::clock(const bool clock_active) {
-  for (auto *component : m_components) {
+  for (auto component : m_components) {
     component->set_control_bus_in(m_control_bus);
     component->set_data_bus_in(m_data_bus);
     component->set_address_bus_in(m_address_bus);
@@ -81,7 +81,7 @@ void MotherBoard::clock(const bool clock_active) {
   m_data_bus = 0;
   m_address_bus = 0;
 
-  for (auto *component : m_components) {
+  for (auto component : m_components) {
     m_control_bus |= component->get_control_bus_out();
     m_data_bus |= component->get_data_bus_out();
     m_address_bus |= component->get_address_bus_out();

@@ -11,11 +11,11 @@
 
 class DebugCard : public Component {
 public:
+  DebugCard() = default;
   DebugCard(const DebugCard &) = default;
   DebugCard(DebugCard &&) = delete;
   auto operator=(const DebugCard &) -> DebugCard & = default;
   auto operator=(DebugCard &&) -> DebugCard & = delete;
-  DebugCard(CPU &cpu, Memory &memory);
   ~DebugCard() override;
 
   void update(double delta_time) override;
@@ -27,6 +27,9 @@ public:
   // ----- STATIC CONSTANTS -----
 
   static constexpr int PLOT_DATA_SIZE = 500;
+
+protected:
+  void on_added() override;
 
 private:
   // ----- METHODS -----
@@ -109,6 +112,6 @@ private:
 
   unsigned long long m_mother_board_frequency{};
 
-  CPU *m_cpu{};
-  Memory *m_memory{};
+  std::shared_ptr<CPU> m_cpu{};
+  std::shared_ptr<Memory> m_memory{};
 };

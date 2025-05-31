@@ -10,6 +10,7 @@
 #include <array>
 #include <climits>
 #include <cstdint>
+#include <functional>
 
 class CPU : public Component {
 public:
@@ -47,14 +48,15 @@ public:
 
   void push_operation(Operation operation);
 
-  void set_halted(bool halted) {
-    m_halted = halted;
-    write_control_bus_pin(ControlBusPin::HALT, halted);
-  }
+  void set_halted(bool halted);
 
   [[nodiscard]] auto is_halted() const -> bool { return m_halted; }
 
   [[nodiscard]] auto is_waiting() const -> bool { return m_waiting; }
+
+  void set_on_halted(std::function<void()> callback) {
+    m_on_halted_callback = callback;
+  }
 
 private:
   // ----- METHODS -----
@@ -94,4 +96,6 @@ private:
   std::array<uint8_t, REGISTERS_BYTES_COUNT> m_registers_memory{};
 
   Z80Executor m_instruction_executor;
+
+  std::function<void()> m_on_halted_callback{[]() {}};
 };

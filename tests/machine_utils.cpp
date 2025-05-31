@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <print>
 
 namespace fs = std::filesystem;
 
@@ -31,16 +32,16 @@ auto machine_setup(std::string program_path_str) -> MotherBoard {
   file.read(std::bit_cast<char *>(program.data()), program_size);
   file.close();
 
-  Memory memory;
-  CPU z80;
-  memory.load_bytes(0x0000, program.data(), program_size);
+  constexpr unsigned long long FREQ = 4'000'000;
+  MotherBoard board(FREQ);
+
+  auto cpu = board.add_component<CPU>();
+
+  auto memory = board.add_component<Memory>();
+  memory->load_bytes(0x0000, program.data(), program_size);
 
   program.clear();
 
-  constexpr unsigned long long FREQ = 4'000'000;
-  MotherBoard board(FREQ);
-  board.add_component(z80);
-  board.add_component(memory);
   return board;
 }
 
@@ -52,4 +53,23 @@ void machine_half_clock_cycles(MotherBoard &mother_board,
     mother_board.clock(clock);
     clock = !clock;
   }
+}
+
+auto run_program(std::string program_path) -> MotherBoard {
+  MotherBoard motherboard = machine_setup(program_path);
+
+  auto cpu = motherboard.get_component<CPU>();
+  bool continue_running = true;
+  cpu->set_on_halted([&continue_running]() { continue_running = false; });
+
+  motherboard.reset();
+
+  bool clock = true;
+
+  while (continue_running) {
+    motherboard.clock(clock);
+    clock = !clock;
+  }
+
+  return motherboard;
 }

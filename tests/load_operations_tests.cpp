@@ -7,15 +7,11 @@
 #include "machine_utils.hpp"
 
 TEST_CASE("Load operations") {
-  MotherBoard mother_board = machine_setup("test_programs_src/ld_test.bin");
-  auto cpu = mother_board.get_component<CPU>();
-
-  const auto nb_cycles = 1'000;
-  machine_half_clock_cycles(mother_board, nb_cycles);
-
-  REQUIRE(cpu != nullptr);
 
   SUBCASE("DIRECT 8 BIT") {
+    MotherBoard board = run_program("test_programs/ld_test_direct.bin");
+    auto cpu = board.get_component<CPU>();
+
     CHECK(cpu->get_register(Register_8::A) == 0x05);
     CHECK(cpu->get_register(Register_8::B) == 0x15);
     CHECK(cpu->get_register(Register_8::C) == 0xFF);
