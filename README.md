@@ -54,3 +54,55 @@ The following dependencies are automatically managed by CMake FetchContent:
 - **doctest** (2.4.11): unit testing
 
 No manual dependency installation is required.
+
+## Testing
+
+The project includes unit tests written with doctest framework.
+
+### Building test programs
+
+Before running the tests, you need to compile the assembly test programs:
+
+```shell
+cd test_programs
+make
+```
+
+This will use sjasmplus to compile all `.asm` files into `.bin` files that are used by the unit tests.
+
+### Building tests
+
+Tests are built automatically when you build the project:
+
+```shell
+cmake --build build
+```
+
+This will create the test executable `emuz80_tests.exe` in the `build/Debug/tests/` directory.
+
+### Running unit tests
+
+To run all unit tests:
+
+```shell
+./build/Debug/tests/emuz80_tests.exe
+```
+
+You can also use CMake's test runner:
+
+```shell
+cd build
+ctest
+```
+
+For more verbose output:
+
+```shell
+./build/Debug/tests/emuz80_tests.exe -v
+```
+
+For running specific test cases, you can use doctest's filtering options:
+
+```shell
+./build/Debug/tests/emuz80_tests.exe --test-case="*load*"
+```
