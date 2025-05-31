@@ -4,7 +4,7 @@
 
 enum class OperationType : std::uint8_t {
   OPCODE_FETCH,
-  SET_8_BIT_REGISTER_DIRECT,
+  SET_8_BIT_REGISTER_IMMEDIATE,
   MEMORY_RW,
   IO_RW,
   INTERUPT_ACK

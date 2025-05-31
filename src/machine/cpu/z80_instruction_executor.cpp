@@ -5,93 +5,94 @@
 #include "cpu.hpp"
 #include "machine/cpu/registers.hpp"
 
+constexpr uint8_t NOP = 0x00;
+constexpr uint8_t HALT = 0x76;
+
 constexpr uint8_t OP_TYPE_MASK = 0b11000000;
-constexpr uint8_t OP_ARITHMETIC_MASK = 0b00111000;
+
+constexpr uint8_t OP_LOAD_ADDRESSING_MODE_MASK = 0b00000111;
+constexpr uint8_t OP_LOAD_TARGET_MASK = 0b00111000;
+
+constexpr uint8_t OP_ARITHMETIC_OPERATION_MASK = 0b00111000;
 
 enum class OpTypes : uint8_t {
-  LOAD = 0b00000000,
-  REGISTER_OP = 0b01000000,
-  ARITHMETIC = 0b10000000,
-  MISC_EX = 0b11000000
+  LOAD = 0,        // 00 000 000
+  REGISTER_OP = 1, // 01 000 000
+  ARITHMETIC = 2,  // 10 000 000
+  MISC_EX = 3      // 11 000 000
 };
 
+enum class OpLoadAddressingMode : uint8_t { IMMEDIATE = 6 };
+
 enum class OpArithmetic : uint8_t {
-  ADD = 0b00000000,
-  ADC = 0b00001000,
-  SUB = 0b00010000,
-  SBC = 0b00011000,
-  AND = 0b00100000,
-  XOR = 0b00101000,
-  OR = 0b00110000,
-  CP = 0b00111000
+  ADD = 0, // 00 000 000,
+  ADC = 1, // 00 001 000,
+  SUB = 2, // 00 010 000,
+  SBC = 3, // 00 011 000,
+  AND = 4, // 00 100 000,
+  XOR = 5, // 00 101 000,
+  OR = 6,  // 00 110 000,
+  CP = 7,  // 00 111 000
 };
 
 void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
-
-  if ((opcode & OP_TYPE_MASK) == (uint8_t)OpTypes::ARITHMETIC) {
-    const uint8_t operation = opcode & OP_ARITHMETIC_MASK;
-
-    switch (operation) {
-    case (uint8_t)OpArithmetic::ADD: {
-      const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
-      const uint8_t result =
-          cpu->get_register(Register_8::A) + cpu->get_register(source_register);
-      cpu->set_register(Register_8::A, result);
-      return;
-    } break;
-
-    case (uint8_t)OpArithmetic::SUB: {
-      const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
-      const uint8_t result =
-          cpu->get_register(Register_8::A) - cpu->get_register(source_register);
-      cpu->set_register(Register_8::A, result);
-      return;
-    } break;
-    }
-  }
-
   switch (opcode) {
-  case 0x00: /* NOP */
+  case NOP:
     break;
 
-  case 0x3E: /* LD A, n */
-    cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
-         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
-         .dest = static_cast<uint16_t>(Register_8::A)});
-    break;
-
-  case 0x06: /* LD B, n */
-    cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
-         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
-         .dest = static_cast<uint16_t>(Register_8::B)});
-    break;
-
-  case 0x0E: /* LD C, n */
-    cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
-         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
-         .dest = static_cast<uint16_t>(Register_8::C)});
-    break;
-
-  case 0x16: /* LD D, n */
-    cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
-         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
-         .dest = static_cast<uint16_t>(Register_8::D)});
-
-    break;
-
-  case 0x1E: /* LD E, n */
-    cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_DIRECT,
-         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
-         .dest = static_cast<uint16_t>(Register_8::E)});
-    break;
-
-  case 0x76: /* HALT */
+  case HALT:
     cpu->set_halted(true);
     break;
+  default:
+    break;
+  }
+
+  auto op_type = static_cast<OpTypes>(opcode & OP_TYPE_MASK);
+
+  switch (op_type) {
+  case OpTypes::LOAD:
+    handle_load_ops(opcode, cpu);
+    break;
+  case OpTypes::ARITHMETIC:
+    handle_arithmetic_ops(opcode, cpu);
+    break;
+  default:
+    break;
+  }
+}
+
+void Z80Executor::handle_arithmetic_ops(uint8_t opcode, CPU *cpu) {
+  const uint8_t operation = opcode & OP_ARITHMETIC_OPERATION_MASK;
+
+  switch (operation) {
+  case (uint8_t)OpArithmetic::ADD: {
+    const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
+    const uint8_t result =
+        cpu->get_register(Register_8::A) + cpu->get_register(source_register);
+    cpu->set_register(Register_8::A, result);
+    return;
+  } break;
+
+  case (uint8_t)OpArithmetic::SUB: {
+    const auto source_register = static_cast<Register_8>(opcode & 0b00000111);
+    const uint8_t result =
+        cpu->get_register(Register_8::A) - cpu->get_register(source_register);
+    cpu->set_register(Register_8::A, result);
+    return;
+  } break;
+  }
+}
+
+void Z80Executor::handle_load_ops(uint8_t opcode, CPU *cpu) {
+  auto addressing_mode =
+      static_cast<OpLoadAddressingMode>(opcode & OP_LOAD_ADDRESSING_MODE_MASK);
+
+  if (addressing_mode == OpLoadAddressingMode::IMMEDIATE) {
+    auto dest_register =
+        static_cast<Register_8>((opcode & OP_LOAD_TARGET_MASK) >> 3);
+    cpu->push_operation(
+        {.type = OperationType::SET_8_BIT_REGISTER_IMMEDIATE,
+         .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
+         .dest = static_cast<uint16_t>(dest_register)});
   }
 }

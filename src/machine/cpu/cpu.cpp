@@ -55,7 +55,7 @@ void CPU::clock(bool clock_active) {
   case OperationType::OPCODE_FETCH:
     operation_finished = handle_opcode_fetch(clock_active);
     break;
-  case OperationType::SET_8_BIT_REGISTER_DIRECT:
+  case OperationType::SET_8_BIT_REGISTER_IMMEDIATE:
     operation_finished = handle_set_8_bit_register_direct(clock_active);
     break;
   default:

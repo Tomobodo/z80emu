@@ -8,8 +8,8 @@
 
 TEST_CASE("Load operations") {
 
-  SUBCASE("DIRECT 8 BIT") {
-    MotherBoard board = run_program("test_programs/ld_test_direct.bin");
+  SUBCASE("8 BIT IMMEDIATE") {
+    MotherBoard board = run_program("test_programs/ld_immediate.bin");
     auto cpu = board.get_component<CPU>();
 
     CHECK(cpu->get_register(Register_8::A) == 0x05);
@@ -17,5 +17,7 @@ TEST_CASE("Load operations") {
     CHECK(cpu->get_register(Register_8::C) == 0xFF);
     CHECK(cpu->get_register(Register_8::D) == 0x58);
     CHECK(cpu->get_register(Register_8::E) == 0xA5);
+    CHECK(cpu->get_register(Register_8::H) == 0x93);
+    CHECK(cpu->get_register(Register_8::L) == 0xAB);
   }
 }
