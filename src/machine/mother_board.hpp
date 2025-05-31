@@ -31,7 +31,7 @@ public:
 
   template <typename T> auto get_component() -> std::shared_ptr<T> {
     for (auto component : m_components) {
-      if (auto casted_component = std::static_pointer_cast<T>(component)) {
+      if (auto casted_component = std::dynamic_pointer_cast<T>(component)) {
         return casted_component;
       }
     }
