@@ -83,5 +83,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 )
 
 # Add tests subdirectory
+
+add_subdirectory(test_programs)
 add_subdirectory(tests)
 
+add_dependencies(${PROJECT_NAME} build_test_programs)
+
+add_custom_command(
+  TARGET ${PROJECT_NAME} PRE_BUILD
+  COMMAND ${MAKE_EXECUTABLE}
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_programs
+  COMMENT "Auto compile the test programs"
+  VERBATIM
+)
