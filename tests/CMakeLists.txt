@@ -27,23 +27,30 @@ doctest_discover_tests(emuz80_tests)
 find_program(SJASMPLUS_EXECUTABLE
   NAMES sjasmplus sjasmplus.exe
   DOC "sjasmplus assembler"
+  REQUIRED
 )
 
-find_program(MAKE_EXECUTABLE 
-  NAMES make gmake nmake 
+find_program(MAKE_EXECUTABLE
+  NAMES make gmake nmake
   DOC "needed to build the test programs"
   REQUIRED
 )
 
-add_custom_target(test_programs
-  COMMAND ${MAKE_EXECUTABLE}
+if (TARGET emuz80_tests)
+set(TEST_BIN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests)
+else()
+set(TEST_BIN_OUTPUT_DIR ${PROJECT_BINARY_DIR})
+endif()
+
+add_custom_target(build_test_programs
+  COMMAND ${MAKE_EXECUTABLE} OUTPUT_DIR=${TEST_BIN_OUTPUT_DIR}
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_programs
   COMMENT "Compile the test programs"
   VERBATIM
 )
 
 if (TARGET emuz80_tests)
-  add_dependencies(emuz80_tests test_programs)
+  add_dependencies(emuz80_tests build_test_programs)
 endif()
 
 add_custom_command(

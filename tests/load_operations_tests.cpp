@@ -12,7 +12,7 @@ TEST_CASE("Load operations") {
 
   SUBCASE("8 BIT IMMEDIATE") {
     run_program(
-        "test_programs/ld_immediate.bin", TIMEOUT,
+        "ld_immediate.bin", TIMEOUT,
         [](unsigned long t_cycle, MotherBoard &board, bool halted, bool &exit) {
           if (halted) {
             auto cpu = board.get_component<CPU>();
@@ -30,5 +30,25 @@ TEST_CASE("Load operations") {
         });
   }
 
-  SUBCASE("8 BIT REGISTER ADDRESSING") {}
+  SUBCASE("REGISTER ADDRESSING") {
+    run_program(
+        "ld_register_addressing.bin", TIMEOUT,
+        [](unsigned long t_cycle, MotherBoard &board, bool halted, bool &exit) {
+          if (t_cycle == 31) {
+            auto cpu = board.get_component<CPU>();
+
+            CHECK(cpu->get_register(Register_8::A) == 0x24);
+            CHECK(cpu->get_register(Register_8::B) == 0x24);
+            CHECK(cpu->get_register(Register_8::C) == 0x24);
+            CHECK(cpu->get_register(Register_8::D) == 0x24);
+            CHECK(cpu->get_register(Register_8::E) == 0x24);
+            CHECK(cpu->get_register(Register_8::H) == 0x24);
+            CHECK(cpu->get_register(Register_8::L) == 0x24);
+          }
+
+          if (halted) {
+            exit = true;
+          }
+        });
+  }
 }
