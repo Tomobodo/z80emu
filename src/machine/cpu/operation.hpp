@@ -4,10 +4,10 @@
 
 enum class OperationType : std::uint8_t {
   OPCODE_FETCH,
-  SET_8_BIT_REGISTER_IMMEDIATE,
-  MEMORY_RW,
-  IO_RW,
-  INTERUPT_ACK
+  MEMORY_READ,
+  MEMORY_WRITE,
+  IO_READ,
+  IO_WRITE
 };
 
 struct Operation {

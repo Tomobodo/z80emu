@@ -91,7 +91,7 @@ void Z80Executor::handle_load_ops(uint8_t opcode, CPU *cpu) {
     auto dest_register =
         static_cast<Register_8>((opcode & OP_LOAD_TARGET_MASK) >> 3);
     cpu->push_operation(
-        {.type = OperationType::SET_8_BIT_REGISTER_IMMEDIATE,
+        {.type = OperationType::MEMORY_READ,
          .source = static_cast<uint16_t>(cpu->get_program_counter() + 1),
          .dest = static_cast<uint16_t>(dest_register)});
   }

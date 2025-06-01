@@ -20,4 +20,9 @@ TEST_CASE("Load operations") {
     CHECK(cpu->get_register(Register_8::H) == 0x93);
     CHECK(cpu->get_register(Register_8::L) == 0xAB);
   }
+
+  SUBCASE("8 BIT REGISTER ADDRESSING") {
+    MotherBoard board = run_program("test_programs/ld_register_addressing.bin");
+    auto cpu = board.get_component<CPU>();
+  }
 }

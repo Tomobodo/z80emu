@@ -29,6 +29,25 @@ void CPU::reset() {
   m_address_bus_out = 0;
 }
 
+void CPU::increment_pc() {
+  set_register(Register_16::PC, get_register(Register_16::PC) + 1);
+}
+
+auto CPU::check_int() -> bool {
+  bool bus_req = read_control_bus_pin(ControlBusPin::BUSRQ);
+  return !bus_req && m_IFF1 && read_control_bus_pin(ControlBusPin::INT);
+}
+
+auto CPU::check_nmi() -> bool {
+  bool bus_req = read_control_bus_pin(ControlBusPin::BUSRQ);
+  return !bus_req && read_control_bus_pin(ControlBusPin::NMI);
+}
+
+void CPU::handle_nmi() {
+  m_IFF1 = false;
+  set_halted(false);
+}
+
 void CPU::clock(bool clock_active) {
   if (read_control_bus_pin(ControlBusPin::RESET) && !clock_active) {
     reset();
@@ -55,8 +74,8 @@ void CPU::clock(bool clock_active) {
   case OperationType::OPCODE_FETCH:
     operation_finished = handle_opcode_fetch(clock_active);
     break;
-  case OperationType::SET_8_BIT_REGISTER_IMMEDIATE:
-    operation_finished = handle_set_8_bit_register_direct(clock_active);
+  case OperationType::MEMORY_READ:
+    operation_finished = handle_memory_read(clock_active);
     break;
   default:
     break;
@@ -89,12 +108,10 @@ void CPU::set_halted(bool halted) {
 }
 
 auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
-  uint16_t program_counter = get_register(Register_16::PC);
-
   switch (m_time_cycle) {
-  case 0: {
+  case 0: { // T1
     if (clock_active) {
-      m_address_bus_out = program_counter;
+      m_address_bus_out = get_register(Register_16::PC);
       write_control_bus_pin(ControlBusPin::RFSH, false);
       write_control_bus_pin(ControlBusPin::M1, true);
     } else {
@@ -103,11 +120,11 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
     }
   } break;
 
-  case 1:
+  case 1: // T2
     // T2 is idle, waiting for memory to write on data bus
     break;
 
-  case 2:
+  case 2: // T3
     write_control_bus_pin(ControlBusPin::M1, false);
     write_control_bus_pin(ControlBusPin::RFSH, true);
 
@@ -124,24 +141,30 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
 
     break;
 
-  default:
+  default: { // T4
+    bool accept_nmi = m_halted && check_nmi();
+    bool accept_int = m_halted && check_int();
+
     if (!clock_active) {
       if (!m_halted) {
-        set_register(Register_16::PC, program_counter + 1);
+        increment_pc();
       }
 
       return true;
+    } else {
+      if (accept_nmi) {
+        handle_nmi();
+      }
     }
+  }
   }
 
   return false;
 }
 
-auto CPU::handle_set_8_bit_register_direct(bool clock_active) -> bool {
-  uint16_t program_counter = get_register(Register_16::PC);
-
+auto CPU::handle_memory_read(bool clock_active) -> bool {
   switch (m_time_cycle) {
-  case 0:
+  case 0: // T1
     if (clock_active) {
       m_address_bus_out = m_current_operation->source;
     } else {
@@ -150,30 +173,23 @@ auto CPU::handle_set_8_bit_register_direct(bool clock_active) -> bool {
     }
     break;
 
-  case 1:
+  case 1:  // T2
     break; // let memory write the value on the data bus
 
-  case 2: {
+  case 2: { // T3
     if (clock_active) {
       auto target_register = static_cast<Register_8>(m_current_operation->dest);
       set_register(target_register, m_data_bus_in);
     } else {
       write_control_bus_pin(ControlBusPin::MREQ, false);
       write_control_bus_pin(ControlBusPin::RD, false);
-    }
 
-  } break;
-
-  default:
-    if (!clock_active) {
-      set_register(Register_16::PC, program_counter + 1);
+      increment_pc();
       return true;
     }
   }
-
+  }
   return false;
-};
-
-auto CPU::handle_memory_read(bool clock_active) -> bool { return true; }
+}
 
 auto CPU::handle_memory_write(bool clock_active) -> bool { return true; }

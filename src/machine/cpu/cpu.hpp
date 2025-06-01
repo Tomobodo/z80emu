@@ -63,11 +63,17 @@ private:
 
   void reset() override;
 
+  void increment_pc();
+
+  auto check_int() -> bool;
+
+  auto check_nmi() -> bool;
+
+  void handle_nmi();
+
   void handle_operation(Operation &operation, bool clock_active);
 
   auto handle_opcode_fetch(bool clock_active) -> bool;
-
-  auto handle_set_8_bit_register_direct(bool clock_active) -> bool;
 
   auto handle_memory_read(bool clock_active) -> bool;
 
