@@ -158,6 +158,8 @@ void DebugCard::init_rendering() {
     return;
   }
 
+  SDL_SetRenderVSync(m_renderer, 1);
+
   IMGUI_CHECKVERSION();
   m_imgui_context = ImGui::CreateContext();
   ImGui::SetCurrentContext(m_imgui_context);
