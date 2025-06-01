@@ -2,6 +2,8 @@
 
 A naive attempt at emulating a z80 based on the user manual in doc.
 
+![The debug view](screenshot.png)
+
 ## Cloning
 
 ```shell
