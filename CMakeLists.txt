@@ -19,6 +19,8 @@ FetchContent_Declare(
   GIT_TAG release-3.2.14
 )
 
+set(SDL_CMAKE_BUILD_TYPE Release CACHE STRING "Built type for SDL3" FORCE)
+
 # Fetch ImGui
 FetchContent_Declare(
   imgui
@@ -53,7 +55,7 @@ add_library(imgui_lib STATIC
 	${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp
 )
 
-target_include_directories(imgui_lib PRIVATE 
+target_include_directories(imgui_lib PRIVATE
 	${imgui_SOURCE_DIR}
 	${SDL3_SOURCE_DIR}/include
 )
