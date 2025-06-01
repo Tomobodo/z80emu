@@ -106,8 +106,8 @@ void DebugCard::reset() {
 }
 
 void DebugCard::on_added() {
-  m_memory = m_mother_board->get_component<Memory>();
   m_cpu = m_mother_board->get_component<CPU>();
+  m_memory = m_mother_board->get_component<Memory>();
 }
 
 // ----- PRIVATE ----- //
@@ -286,18 +286,12 @@ void DebugCard::draw_control_bus_section() {
       ImGui::SameLine();
       const char *button_name = CONTROL_BUS_PIN_NAMES.at(bit);
 
-      if (CONTROL_BUS_PINS.at(bit) == ControlBusPin::RESET) {
-        ImGui::Button(button_name);
+      ImGui::Button(button_name);
 
-        if (ImGui::IsItemActive()) {
-          set_bit(m_control_bus_out_toggle, bit, true);
-        } else {
-          set_bit(m_control_bus_out_toggle, bit, false);
-        }
+      if (ImGui::IsItemActive()) {
+        set_bit(m_control_bus_out_toggle, bit, true);
       } else {
-        if (ImGui::Button(button_name)) {
-          set_bit(m_control_bus_out_toggle, bit, !bit_on);
-        }
+        set_bit(m_control_bus_out_toggle, bit, false);
       }
 
       ImGui::PopStyleColor();
