@@ -475,7 +475,7 @@ void DebugCard::draw_memory_section() {
 
       ImU32 cell_bg IM_COL32(0, 0, 0, 0);
 
-      if (address == m_address_bus_in) {
+      if (address == m_cpu->get_pc()) {
         cell_bg = IM_COL32(0, 255, 0, 80);
       }
 
