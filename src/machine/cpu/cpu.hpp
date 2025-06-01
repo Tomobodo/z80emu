@@ -20,7 +20,7 @@ public:
 
   void clock(bool clock_active) override;
 
-  [[nodiscard]] auto get_program_counter() const -> const uint16_t {
+  [[nodiscard]] auto get_pc() const -> const uint16_t {
     return get_register(Register_16::PC);
   }
 

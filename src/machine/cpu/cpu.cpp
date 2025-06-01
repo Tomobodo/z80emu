@@ -64,7 +64,7 @@ void CPU::clock(bool clock_active) {
   }
 
   if (m_operation_queue.empty()) {
-    push_operation({.type = OperationType::OPCODE_FETCH});
+    push_operation({.type = OperationType::OPCODE_FETCH, .increment_pc = true});
     m_current_operation = &m_operation_queue.head();
   }
 
@@ -83,6 +83,9 @@ void CPU::clock(bool clock_active) {
 
   if (!clock_active) {
     if (operation_finished) {
+      if (!m_halted && m_current_operation->increment_pc) {
+        increment_pc();
+      }
       m_operation_queue.dequeue();
       m_time_cycle = 0;
 
@@ -146,10 +149,6 @@ auto CPU::handle_opcode_fetch(bool clock_active) -> bool {
     bool accept_int = m_halted && check_int();
 
     if (!clock_active) {
-      if (!m_halted) {
-        increment_pc();
-      }
-
       return true;
     } else {
       if (accept_nmi) {
@@ -180,11 +179,11 @@ auto CPU::handle_memory_read(bool clock_active) -> bool {
     if (clock_active) {
       auto target_register = static_cast<Register_8>(m_current_operation->dest);
       set_register(target_register, m_data_bus_in);
+      m_address_bus_out = 0;
     } else {
       write_control_bus_pin(ControlBusPin::MREQ, false);
       write_control_bus_pin(ControlBusPin::RD, false);
 
-      increment_pc();
       return true;
     }
   }
@@ -192,4 +191,30 @@ auto CPU::handle_memory_read(bool clock_active) -> bool {
   return false;
 }
 
-auto CPU::handle_memory_write(bool clock_active) -> bool { return true; }
+auto CPU::handle_memory_write(bool clock_active) -> bool {
+  switch (m_time_cycle) {
+  case 0: // T1
+    if (clock_active) {
+      m_address_bus_out = m_current_operation->dest;
+      m_data_bus_out = m_current_operation->source;
+    } else {
+      write_control_bus_pin(ControlBusPin::MREQ, true);
+      write_control_bus_pin(ControlBusPin::WR, true);
+    }
+    break;
+  case 1:   // T2
+    break;  // let memory save the value on the data bus
+  case 2: { // T3
+    if (clock_active) {
+      m_address_bus_out = 0;
+      m_data_bus_out = 0;
+    } else {
+      write_control_bus_pin(ControlBusPin::MREQ, false);
+      write_control_bus_pin(ControlBusPin::WR, false);
+
+      return true;
+    }
+  }
+  }
+  return false;
+}

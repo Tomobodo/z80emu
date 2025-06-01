@@ -14,4 +14,5 @@ struct Operation {
   OperationType type;
   uint16_t source;
   uint16_t dest;
+  bool increment_pc;
 };
