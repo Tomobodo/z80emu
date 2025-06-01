@@ -201,8 +201,10 @@ auto CPU::handle_memory_write(bool clock_active) -> bool {
       write_control_bus_pin(ControlBusPin::WR, true);
     }
     break;
-  case 1:   // T2
-    break;  // let memory save the value on the data bus
+
+  case 1:  // T2
+    break; // let memory save the value on the data bus
+
   case 2: { // T3
     if (clock_active) {
       m_address_bus_out = 0;

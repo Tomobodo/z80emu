@@ -72,7 +72,9 @@ void run_program(
     }
     clock_prev = clock;
 
-    on_step(t_count, motherboard, cpu->is_halted(), exit);
+    if (!clock) {
+      on_step(t_count, motherboard, cpu->is_halted(), exit);
+    }
 
     auto current = std::chrono::steady_clock::now();
     auto duration =

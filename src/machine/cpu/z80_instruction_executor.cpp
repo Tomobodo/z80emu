@@ -13,6 +13,9 @@ constexpr uint8_t OP_TYPE_MASK = 0b11000000;
 constexpr uint8_t OP_LOAD_ADDRESSING_MODE_MASK = 0b00000111;
 constexpr uint8_t OP_LOAD_TARGET_MASK = 0b00111000;
 
+constexpr uint8_t OP_REGISTER_TARGET_MASK = 0b00111000;
+constexpr uint8_t OP_REGISTER_SOURCE_MASK = 0b00000111;
+
 constexpr uint8_t OP_ARITHMETIC_OPERATION_MASK = 0b00111000;
 
 enum class OpTypes : uint8_t {
@@ -47,7 +50,7 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
     break;
   }
 
-  auto op_type = static_cast<OpTypes>(opcode & OP_TYPE_MASK);
+  auto op_type = static_cast<OpTypes>((opcode & OP_TYPE_MASK) >> 6);
 
   switch (op_type) {
   case OpTypes::LOAD:
@@ -56,7 +59,11 @@ void Z80Executor::execute(uint8_t opcode, CPU *cpu) {
   case OpTypes::ARITHMETIC:
     handle_arithmetic_ops(opcode, cpu);
     break;
-  default:
+  case OpTypes::REGISTER_OP:
+    handle_register_ops(opcode, cpu);
+    break;
+  case OpTypes::MISC_EX:
+    handle_misc_ops(opcode, cpu);
     break;
   }
 }
@@ -87,12 +94,28 @@ void Z80Executor::handle_load_ops(uint8_t opcode, CPU *cpu) {
   auto addressing_mode =
       static_cast<OpLoadAddressingMode>(opcode & OP_LOAD_ADDRESSING_MODE_MASK);
 
-  if (addressing_mode == OpLoadAddressingMode::IMMEDIATE) {
+  switch (addressing_mode) {
+  case OpLoadAddressingMode::IMMEDIATE: {
     auto dest_register =
         static_cast<Register_8>((opcode & OP_LOAD_TARGET_MASK) >> 3);
     cpu->push_operation({.type = OperationType::MEMORY_READ,
                          .source = static_cast<uint16_t>(cpu->get_pc() + 1),
                          .dest = static_cast<uint16_t>(dest_register),
                          .increment_pc = true});
+
+  } break;
+
+  default:
+    break;
   }
 }
+
+void Z80Executor::handle_register_ops(uint8_t opcode, CPU *cpu) {
+  auto src_register = (OP_REGISTER_SOURCE_MASK & opcode);
+  auto target_register = (OP_REGISTER_TARGET_MASK & opcode) >> 3;
+
+  cpu->set_register(static_cast<Register_8>(target_register),
+                    cpu->get_register(static_cast<Register_8>(src_register)));
+}
+
+void Z80Executor::handle_misc_ops(uint8_t opcode, CPU *cpu) {}

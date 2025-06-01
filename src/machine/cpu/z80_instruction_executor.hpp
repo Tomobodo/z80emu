@@ -10,4 +10,6 @@ public:
 private:
   void handle_arithmetic_ops(uint8_t opcode, CPU *cpu);
   void handle_load_ops(uint8_t opcode, CPU *cpu);
+  void handle_register_ops(uint8_t opcode, CPU *cpu);
+  void handle_misc_ops(uint8_t opcode, CPU *cpu);
 };
