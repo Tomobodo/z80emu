@@ -6,4 +6,4 @@
 	LD H, 0x93
 	LD L, 0xAB
 
-	HALT
+	HALT ; important to always exit the progam in test

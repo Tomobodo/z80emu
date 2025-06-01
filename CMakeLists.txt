@@ -84,3 +84,4 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 
 # Add tests subdirectory
 add_subdirectory(tests)
+

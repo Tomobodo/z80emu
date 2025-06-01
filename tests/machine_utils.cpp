@@ -5,7 +5,8 @@
 
 #include <filesystem>
 #include <fstream>
-#include <print>
+
+#include <doctest/doctest.h>
 
 namespace fs = std::filesystem;
 
@@ -33,43 +34,53 @@ auto machine_setup(std::string program_path_str) -> MotherBoard {
   file.close();
 
   constexpr unsigned long long FREQ = 4'000'000;
-  MotherBoard board(FREQ);
+  MotherBoard motherboard(FREQ);
 
-  auto cpu = board.add_component<CPU>();
+  auto cpu = motherboard.add_component<CPU>();
 
-  auto memory = board.add_component<Memory>();
+  auto memory = motherboard.add_component<Memory>();
   memory->load_bytes(0x0000, program.data(), program_size);
 
   program.clear();
 
-  return board;
-}
-
-void machine_half_clock_cycles(MotherBoard &mother_board,
-                               unsigned long long half_cycles) {
-  mother_board.reset();
-  bool clock = true;
-  for (unsigned long long i = 0; i < half_cycles; i++) {
-    mother_board.clock(clock);
-    clock = !clock;
-  }
-}
-
-auto run_program(std::string program_path) -> MotherBoard {
-  MotherBoard motherboard = machine_setup(program_path);
-
-  auto cpu = motherboard.get_component<CPU>();
-  bool continue_running = true;
-  cpu->set_on_halted([&continue_running]() { continue_running = false; });
-
   motherboard.reset();
 
-  bool clock = true;
-
-  while (continue_running) {
-    motherboard.clock(clock);
-    clock = !clock;
-  }
-
   return motherboard;
+}
+
+void run_program(
+    std::string program_path, unsigned long timeout_ms,
+    std::function<void(unsigned long t_cycle, MotherBoard &motherboard,
+                       bool halted, bool &exit)>
+        on_step) {
+  MotherBoard motherboard = machine_setup(program_path);
+  auto cpu = motherboard.get_component<CPU>();
+
+  bool clock = true;
+  bool clock_prev = true;
+  bool exit = false;
+
+  unsigned long t_count = 0;
+
+  auto start = std::chrono::steady_clock::now();
+
+  while (!exit) {
+    motherboard.clock(clock);
+    clock = !clock_prev;
+    if (clock && !clock_prev) {
+      t_count++;
+    }
+    clock_prev = clock;
+
+    on_step(t_count, motherboard, cpu->is_halted(), exit);
+
+    auto current = std::chrono::steady_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(current - start);
+
+    if (duration.count() > timeout_ms) {
+      FAIL("Program timeout");
+      exit = true;
+    }
+  }
 }

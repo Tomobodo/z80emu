@@ -61,14 +61,8 @@ The project includes unit tests written with doctest framework.
 
 ### Building test programs
 
-Before running the tests, you need to compile the assembly test programs:
-
-```shell
-cd test_programs
-make
-```
-
-This will use sjasmplus to compile all `.asm` files into `.bin` files that are used by the unit tests.
+The assembly test programs are compiled automatically when building the project.
+You need make and sjasmplus installed and available in your PATH.
 
 ### Building tests
 

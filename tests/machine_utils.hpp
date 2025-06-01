@@ -1,3 +1,4 @@
+#include <functional>
 #include <string>
 #include <utility>
 
@@ -18,7 +19,8 @@ private:
 
 auto machine_setup(std::string program_path_str) -> MotherBoard;
 
-void machine_half_clock_cycles(MotherBoard &mother_board,
-                               unsigned long long half_cycles);
-
-auto run_program(std::string program_path) -> MotherBoard;
+void run_program(
+    std::string program_path, unsigned long timeout_ms,
+    std::function<void(unsigned long t_cycle, MotherBoard &motherboard,
+                       bool halted, bool &exit)>
+        on_step);

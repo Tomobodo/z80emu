@@ -4,7 +4,6 @@
 #include "registers.hpp"
 
 #include <algorithm>
-#include <cstdint>
 
 CPU::CPU() { reset(); }
 
