@@ -60,7 +60,7 @@ auto main(int argc, char *argv[]) -> int {
   memory->load_bytes(0x0000, program.data(), program_size);
   program.clear();
 
-  mother_board.add_component<DebugCard>();
+  mother_board.add_component<DebugCard>(&mother_board);
 
   mother_board.run();
 

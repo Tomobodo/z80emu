@@ -11,7 +11,7 @@
 
 class DebugCard : public Component {
 public:
-  DebugCard() = default;
+  DebugCard(MotherBoard *mother_board);
   DebugCard(const DebugCard &) = default;
   DebugCard(DebugCard &&) = delete;
   auto operator=(const DebugCard &) -> DebugCard & = default;
@@ -27,9 +27,6 @@ public:
   // ----- STATIC CONSTANTS -----
 
   static constexpr int PLOT_DATA_SIZE = 500;
-
-protected:
-  void on_added() override;
 
 private:
   // ----- METHODS -----
@@ -114,4 +111,6 @@ private:
 
   std::shared_ptr<CPU> m_cpu{};
   std::shared_ptr<Memory> m_memory{};
+
+  MotherBoard *m_mother_board;
 };

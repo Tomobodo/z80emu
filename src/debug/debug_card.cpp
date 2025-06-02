@@ -16,6 +16,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
 
+DebugCard::DebugCard(MotherBoard *mother_board) : m_mother_board(mother_board) {
+  m_cpu = m_mother_board->get_component<CPU>();
+  m_memory = m_mother_board->get_component<Memory>();
+}
+
 DebugCard::~DebugCard() { deinit(); }
 
 void DebugCard::clock(bool clock_active) {
@@ -103,11 +108,6 @@ auto get_clock_plot_value(void *data_in, int index) -> float {
 void DebugCard::reset() {
   deinit();
   init();
-}
-
-void DebugCard::on_added() {
-  m_cpu = m_mother_board->get_component<CPU>();
-  m_memory = m_mother_board->get_component<Memory>();
 }
 
 // ----- PRIVATE ----- //

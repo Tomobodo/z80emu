@@ -19,14 +19,13 @@ public:
 
   ~MotherBoard() = default;
 
-  template <typename T>
-  auto add_component() -> std::shared_ptr<T>
+  template <typename T, typename... Args>
+  auto add_component(Args &&...args) -> std::shared_ptr<T>
     requires(std::is_base_of_v<Component, T>)
   {
-    auto component = std::make_shared<T>();
-    component->set_mother_board(this);
-    m_components.push_back(component);
-    return component;
+    auto component = m_components.emplace_back(
+        std::make_shared<T>(std::forward<Args>(args)...));
+    return std::dynamic_pointer_cast<T>(component);
   }
 
   template <typename T> auto get_component() -> std::shared_ptr<T> {

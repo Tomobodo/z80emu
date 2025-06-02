@@ -25,3 +25,4 @@ bool Component::control_bus_pin_changed_to(ControlBusPin pin,
   return current_pin_value == to_value &&
          previous_pin_value != current_pin_value;
 }
+void Component::set_data_bus_in(uint8_t bus_in) { m_data_bus_in = bus_in; }
